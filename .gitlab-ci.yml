@@ -1,0 +1,55 @@
+variables:
+   IMAGE_TAG_BACK_DEV: $CI_REGISTRY_IMAGE/backend-dev:$CI_PIPELINE_ID
+   IMAGE_TAG_BACK_PROD: $CI_REGISTRY_IMAGE/backend-prod:$CI_PIPELINE_ID
+   IMAGE_TAG_FRONT_DEV: $CI_REGISTRY_IMAGE/frontend-dev:$CI_PIPELINE_ID
+   IMAGE_TAG_FRONT_PROD: $CI_REGISTRY_IMAGE/frontend-prod:$CI_PIPELINE_ID
+
+before_script:
+  - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $REGISTRY_URL
+  - PATH=$PATH:/snap/bin
+stages:
+  - build
+  - push
+  - deploy
+build_dev:
+  stage: build
+  script:
+    - docker build --build-arg ARG_MONGODB_HOST=$MONGODB_HOST_DEV --build-arg ARG_MONGODB_PORT=$MONGODB_PORT_DEV --build-arg ARG_MONGODB_NAME=$MONGODB_NAME_DEV --build-arg ARG_JIRA_URL=$JIRA_URL --build-arg ARG_JIRA_USER=$JIRA_USER --build-arg ARG_JIRA_PASSWORD=$JIRA_PASSWORD -t $IMAGE_TAG_BACK_DEV backend
+    - docker build -t $IMAGE_TAG_FRONT_DEV frontend
+  only:
+    - dev
+push_dev:
+  stage: push
+  script:
+    - docker push $IMAGE_TAG_BACK_DEV
+    - docker push $IMAGE_TAG_FRONT_DEV
+  only:
+    - dev
+deploy_dev:
+  stage: deploy
+  script:
+    - kubectl set image deployment.v1.apps/$DEPLOYMENT_NAME_BACK_DEV $DEPLOYMENT_NAME_BACK_DEV=$IMAGE_TAG_BACK_DEV --namespace=$CLUSTER_NAMESPACE
+    - kubectl set image deployment.v1.apps/$DEPLOYMENT_NAME_FRONT_DEV $DEPLOYMENT_NAME_FRONT_DEV=$IMAGE_TAG_FRONT_DEV --namespace=$CLUSTER_NAMESPACE
+  only:
+   - dev
+build_prod:
+  stage: build
+  script:
+    - docker build --build-arg ARG_MONGODB_HOST=$MONGODB_HOST_PROD --build-arg ARG_MONGODB_PORT=$MONGODB_PORT_PROD --build-arg ARG_MONGODB_NAME=$MONGODB_NAME_PROD --build-arg ARG_JIRA_URL=$JIRA_URL --build-arg ARG_JIRA_USER=$JIRA_USER --build-arg ARG_JIRA_PASSWORD=$JIRA_PASSWORD -t $IMAGE_TAG_BACK_PROD backend
+    - docker build -t $IMAGE_TAG_FRONT_PROD frontend
+  only:
+    - master
+push_prod:
+  stage: push
+  script:
+    - docker push $IMAGE_TAG_BACK_PROD
+    - docker push $IMAGE_TAG_FRONT_PROD
+  only:
+    - master
+deploy_prod:
+  stage: deploy
+  script:
+    - kubectl set image deployment.v1.apps/$DEPLOYMENT_NAME_BACK_PROD $DEPLOYMENT_NAME_BACK_PROD=$IMAGE_TAG_BACK_PROD --namespace=$CLUSTER_NAMESPACE
+    - kubectl set image deployment.v1.apps/$DEPLOYMENT_NAME_FRONT_PROD $DEPLOYMENT_NAME_FRONT_PROD=$IMAGE_TAG_FRONT_PROD --namespace=$CLUSTER_NAMESPACE
+  only:
+   - master
