@@ -16,7 +16,7 @@ import navigation from '../_nav';
 // routes config
 import routes from '../routes';
 
-class DefaultLayout extends Component {
+export default class Layout extends Component {
 
     loading = () => <div className="animated fadeIn pt-1 text-center">Loading...</div>;
 
@@ -60,5 +60,3 @@ class DefaultLayout extends Component {
         );
     }
 }
-
-export default DefaultLayout;
