@@ -4,3 +4,4 @@ __pycache__/
 .pyre/
 venv/
 env/
+node_modules/
