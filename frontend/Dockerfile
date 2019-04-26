@@ -1,4 +1,4 @@
-FROM node:alpine as build
+FROM node:11-stretch as build
 WORKDIR /usr/jira_stats
 COPY package.json .
 RUN npm install
