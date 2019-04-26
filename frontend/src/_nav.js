@@ -7,7 +7,7 @@ export default {
             children: [
                 {
                     name: 'Задачи',
-                    //url: '/base',
+                    url: '/tasks',
                     //icon: 'fa fa-tasks',
                 },
                 {
@@ -19,6 +19,7 @@ export default {
                     name: 'Направления',
                     //url: '/base',
                    // icon: 'fa fa-project-diagram',
+                    attributes: { disabled: true },
                 },
             ],
         },
