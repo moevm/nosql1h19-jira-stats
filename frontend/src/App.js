@@ -9,7 +9,7 @@ const loading = () => <div className="animated fadeIn pt-3 text-center">Loading.
 const Layout = React.lazy(() => import('./containers/Layout.js'));
 
 // Pages
-const Login = React.lazy(() => import('./views/Pages/Login'));
+//const Login = React.lazy(() => import('./views/Pages/Login'));
 
 class App extends Component {
 
