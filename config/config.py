@@ -1,16 +1,28 @@
 import os
-import config_reader as cr
+import config.config_reader as cr
 
-basedir = os.path.abspath(os.path.dirname(__file__))
-app_name = "app"
+BASEDIR = os.path.abspath(os.path.dirname(__file__))
+APP_NAME = "app"
 
 
 class Config:
-    MONGO_URI = 'mongodb://{}:{}/{}'.format(cr.get_db_host(), cr.get_db_port(), cr.get_db_name())
-    UPLOAD_FOLDER = os.path.join(basedir, app_name, 'static/')
+    UPLOAD_FOLDER = os.path.join(BASEDIR, APP_NAME, 'static/')
+    CSRF_ENABLED = True
+    JIRA_URL = 'https://jira.robotbull.com'
+    JIRA_USERNAME = 'k.fokin'
+    JIRA_PASSWORD = '26RmyDTdhw'
+    MONGO_URI = 'mongodb://{}:{}/'.format(cr.get_db_host(), cr.get_db_port())
+    MONGO_DBS = cr.get_db_name()
+    JIRA_COMPONENTS = [
+        'PlanSharing',
+        'ESS',
+        'FinTech',
+        'RobotBull',
+        'Rusintermo']
+    JIRA_EPIC_ID = 'WORK'
+    JIRA_EPIC_PROJECT = "WORK'и"
 
-
-class DevCongig(Config):
+class DevConfig(Config):
     DEBUG = True
 
 

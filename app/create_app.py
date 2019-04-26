@@ -1,11 +1,12 @@
 from flask import Flask
 from flask_login import LoginManager
 from pymongo import MongoClient
-from config.config import MONGO_URI
+from config.config import Config, DevConfig
 
 app = Flask(__name__)
-app.config.from_object('config.DevConfig')
+app.config.from_object(DevConfig)
 
-db = MongoClient(MONGO_URI)
+client = MongoClient(Config.MONGO_URI)
+db = client[Config.MONGO_DBS]
 login_manager = LoginManager(app)
 login_manager.session_protection = "strong"
