@@ -1,0 +1,21 @@
+{% extends "main/base.html" %}
+
+{% block content %}
+
+    <div class="">
+        {% for issue in issue_list %}
+            <p>
+                {{ issue.key }}
+                {{ issue.created }}
+                {{ issue.assignee }}
+                {{ issue.resolutiondate }}
+                {{ issue.timeestimate }}
+                {{ issue.status }}
+                {{ issue.customer }}
+                {{ issue.project }}
+                {{ issue.category }}
+            </p>
+        {% endfor %}
+    </div>
+
+{% endblock %}
