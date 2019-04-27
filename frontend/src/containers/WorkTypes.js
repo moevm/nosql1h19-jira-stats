@@ -2,7 +2,6 @@ import React, {Component} from 'react';
 import {Bar, Doughnut, Line, Pie, Polar, Radar} from 'react-chartjs-2';
 import {Card, CardBody, CardColumns, CardHeader, FormGroup, Label, Input} from 'reactstrap';
 import {CustomTooltips} from '@coreui/coreui-plugin-chartjs-custom-tooltips';
-import CardDeck from "reactstrap/es/CardDeck";
 
 const bar = {
     labels: ['January', 'February', 'March', 'April', 'May', 'June', 'July'],
@@ -106,18 +105,26 @@ export default class WorkTypes extends Component {
                             </CardHeader>
                             <CardBody style={{height: 340}}>
                                 <FormGroup>
-                                    <Label htmlFor="name">Name</Label>
-                                    <Input type="text" id="name" placeholder="Enter your name" required/>
+                                    <Label htmlFor="date_start">Начало периода</Label>
+                                    <Input name="date_start" type="date"/>
                                 </FormGroup>
                                 <FormGroup>
-                                    <Label htmlFor="ccnumber">Credit Card Number</Label>
-                                    <Input type="text" id="ccnumber" placeholder="0000 0000 0000 0000" required/>
+                                    <Label htmlFor="date_start">Конец периода</Label>
+                                    <Input name="date_end" type="date"/>
                                 </FormGroup>
                                 <FormGroup>
                                     <Label htmlFor="dateGroupFormat">Формат</Label>
                                     <Input type="select" name="dateGroupFormat">
                                         <option value="month">Месяц</option>
                                         <option value="week">Неделя</option>
+                                    </Input>
+                                </FormGroup>
+                                <FormGroup>
+                                    <Label htmlFor="workType">Направление</Label>
+                                    <Input type="select" name="workType">
+                                        <option value="all">Все</option>
+                                        <option value="development">Разработка</option>
+                                        <option value="design">Дизайн</option>
                                     </Input>
                                 </FormGroup>
                             </CardBody>
@@ -142,6 +149,22 @@ export default class WorkTypes extends Component {
                         </Card>
                     </div>
                 </div>
+                <Card>
+                    <CardHeader>
+                        График распределения трудозатрат по направлениям
+                    </CardHeader>
+                    <CardBody>
+                        <div className="chart-wrapper" style={{height: 300}}>
+                            <Bar data={{
+                                ...bar,
+                                datasets: this.state.datasets.map((dataset, i) => {
+                                    console.log({...dataset, ...colors[i]});
+                                    return {...dataset, ...colors[i]}
+                                })
+                            }} options={bar_options} redraw={true}/>
+                        </div>
+                    </CardBody>
+                </Card>
             </div>
         );
     }
