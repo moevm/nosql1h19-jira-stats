@@ -18,7 +18,6 @@
     "node-sass": "^4.11.0",
     "prop-types": "^15.7.2",
     "react": "^16.8.6",
-    "react-bootstrap-date-picker": "^5.1.0",
     "react-chartjs-2": "^2.7.4",
     "react-dom": "^16.8.6",
     "react-router-config": "^4.4.0-beta.8",
