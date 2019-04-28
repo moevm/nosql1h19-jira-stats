@@ -9,8 +9,8 @@ class Config:
     UPLOAD_FOLDER = os.path.join(BASEDIR, APP_NAME, 'static/')
     CSRF_ENABLED = True
     JIRA_URL = 'https://jira.robotbull.com'
-    JIRA_USERNAME = 'k.fokin'
-    JIRA_PASSWORD = '26RmyDTdhw'
+    JIRA_USERNAME = ''
+    JIRA_PASSWORD = ''
     MONGO_URI = 'mongodb://{}:{}/'.format(cr.get_db_host(), cr.get_db_port())
     MONGO_DBS = cr.get_db_name()
     JIRA_COMPONENTS = [
