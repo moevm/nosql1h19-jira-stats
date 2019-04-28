@@ -13,6 +13,7 @@ class Config:
     MONGO_URI = 'mongodb://{}:{}/'.format(os.environ.get('MONGODB_HOST', '127.0.0.1'),
                                           os.environ.get('MONGODB_PORT', '27017'))
     MONGO_DBS = os.environ.get('MONGODB_NAME')
+
     JIRA_COMPONENTS = [
         'PlanSharing',
         'ESS',
