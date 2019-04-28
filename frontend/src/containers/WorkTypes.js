@@ -25,14 +25,15 @@ const options = {
                 if (label) {
                     label += ': ';
                 }
-                label += moment.utc(tooltipItem.yLabel * 1000).format("H") + "h " + moment.utc(tooltipItem.yLabel * 1000).format("mm") + "m";
+                label += Math.round(tooltipItem.yLabel/3600) + "h " + tooltipItem.yLabel%60 + "m";
+
                 return label;
             },
-            title: (tooltipItems, data) => {
-                return tooltipItems[0].xLabel + ' (' +
-                    moment().day("Monday").year(tooltipItems[0].xLabel.split(' ')[1]).week(tooltipItems[0].xLabel.split(' ')[0]).format("DD.MM.YYYY")
-                    + ' - ' + moment().day("Sunday").year(tooltipItems[0].xLabel.split(' ')[1]).week(tooltipItems[0].xLabel.split(' ')[0]).format("DD.MM.YYYY") + ')';
-            }
+            // title: (tooltipItems, data) => {
+            //     return tooltipItems[0].xLabel + ' (' +
+            //         moment().day("Monday").year(tooltipItems[0].xLabel.split(' ')[1]).week(tooltipItems[0].xLabel.split(' ')[0]).format("DD.MM.YYYY")
+            //         + ' - ' + moment().day("Sunday").year(tooltipItems[0].xLabel.split(' ')[1]).week(tooltipItems[0].xLabel.split(' ')[0]).format("DD.MM.YYYY") + ')';
+            // }
         }
     },
     maintainAspectRatio: false,
@@ -47,8 +48,8 @@ const bar_options = {
         yAxes: [{
             stacked: true,
             ticks: {
-                callback: (v) => moment.utc(v * 1000).format("H") + "h " + moment.utc(v * 1000).format("mm") + "m",
-                stepSize: 3600
+                callback: (v) => Math.round(v/3600) + "h " + v%60 + "m",
+                stepSize: 28800
             }
         }],
     }
@@ -111,13 +112,21 @@ export default class WorkTypes extends Component {
     }
 
     updateData() {
-        console.log(this.state.formData.dateGroupFormat, this.state.formData.dateStart, this.state.formData.dateEnd);
-        WorkTypeUtils.getWorkTypeDataTable(this.state.formData.dateGroupFormat, this.state.formData.dateStart, this.state.formData.dateEnd)
-            .then((data) => {console.log(data);this.setState({
-                ...this.state,
-                tableData: data
-            })});
-        WorkTypeUtils.getWorkTypeDataChart(this.state.formData.dateGroupFormat, this.state.formData.dateStart, this.state.formData.dateEnd)
+        WorkTypeUtils.getWorkTypeDataTable(
+            this.state.formData.dateGroupFormat,
+            this.state.formData.workType,
+            this.state.formData.dateStart,
+            this.state.formData.dateEnd)
+            .then((data) => this.setState({
+                    ...this.state,
+                    tableData: data
+                })
+            );
+        WorkTypeUtils.getWorkTypeDataChart(
+            this.state.formData.dateGroupFormat,
+            this.state.formData.workType,
+            this.state.formData.dateStart,
+            this.state.formData.dateEnd)
             .then((data) => this.setState({
                 ...this.state,
                 labels: data.labels,
@@ -142,7 +151,7 @@ export default class WorkTypes extends Component {
                 Header: week,
                 id: week,
                 accessor: (row) => row.hours[week],
-                Cell: props => moment.utc(props.value * 1000).format("H") + "h " + moment.utc(props.value * 1000).format("mm") + "m",
+                Cell: props => Math.round(props.value/3600) + "h " + props.value%60 + "m",
                 aggregate: vals => _.sum(vals)
             }))] : [];
         return (
@@ -178,12 +187,14 @@ export default class WorkTypes extends Component {
                                     <Input type="select" name="workType" value={this.state.formData.workType}
                                            onChange={this.handleInputChange}>
                                         <option value="all">Все</option>
-                                        <option value="development">Разработка</option>
-                                        <option value="design">Дизайн</option>
+                                        <option value="Разработка">Разработка</option>
+                                        <option value="Дизайн">Дизайн</option>
+                                        <option value="Администрирование">Администрирование</option>
                                     </Input>
                                 </FormGroup>
                                 <div className="form-actions">
-                                    <Button color="primary" style={{width: '100%'}} onClick={this.updateData}>Обновить</Button>
+                                    <Button color="primary" style={{width: '100%'}}
+                                            onClick={this.updateData}>Обновить</Button>
                                 </div>
                             </CardBody>
                         </Card>

@@ -88,23 +88,32 @@ const data_for_chart = [
 ];
 
 export default class WorkTypeUtils {
-    static async getWorkTypeDataTable(type, dateStart, dateEnd) {
+    static async getWorkTypeDataTable(type, category, dateStart, dateEnd) {
         let response = await axios.get('http://100.124.0.7:32137/hours_per_work_type_table', {
             params: {
                 start_date: dateStart,
                 end_date: dateEnd,
                 duration: type,
+                category: category !== 'all' ? category : undefined,
             }
         });
         let data = response.data;
         return this.fillEmptyPeriods(data, type, dateStart, dateEnd);
     }
 
-    static async getWorkTypeDataChart(type, dateStart, dateEnd) {
-        let data = data_for_chart;
+    static async getWorkTypeDataChart(type, category, dateStart, dateEnd) {
+        let response = await axios.get('http://100.124.0.7:32137/hours_per_work_type_chart', {
+            params: {
+                start_date: dateStart,
+                end_date: dateEnd,
+                duration: type,
+                category: category !== 'all' ? category : undefined,
+            }
+        });
+        let data = response.data;
         data = this.fillEmptyPeriods(data, type, dateStart, dateEnd);
         const labels = Object.keys(data[0].hours);
-        const datasets = data.map((tmp) => ({label: tmp.project, data: Object.values(tmp.hours)}));
+        const datasets = data.map((tmp) => ({label: tmp.category, data: Object.values(tmp.hours)}));
         return {labels, datasets};
     }
 
