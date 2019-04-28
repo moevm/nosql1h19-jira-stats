@@ -27,6 +27,7 @@ def auth():
 def get_hours_per_work_type_table():
     start_date = datetime.strptime(request.args.get('start_date'), '%Y-%m-%d')
     end_date = datetime.strptime(request.args.get('end_date'), '%Y-%m-%d')
+    category = request.args.get('category')
 
     try:
         duration = request.args.get('duration')
@@ -34,7 +35,24 @@ def get_hours_per_work_type_table():
         duration = 'month'
 
     response = jsonify(Issue.hours_per_work_type_table(start_datetime=start_date, end_datetime=end_date,
-                                                       duration=duration))
+                                                       duration=duration, category=category))
+    response.headers.add('Access-Control-Allow-Origin', '*')
+    return response
+
+
+@main.route('/hours_per_work_type_chart', methods=['GET'])
+def get_hours_per_work_type_chart():
+    start_date = datetime.strptime(request.args.get('start_date'), '%Y-%m-%d')
+    end_date = datetime.strptime(request.args.get('end_date'), '%Y-%m-%d')
+    category = request.args.get('category')
+
+    try:
+        duration = request.args.get('duration')
+    except KeyError:
+        duration = 'month'
+
+    response = jsonify(Issue.hours_per_work_type_chart(start_datetime=start_date, end_datetime=end_date,
+                                                       duration=duration, category=category))
     response.headers.add('Access-Control-Allow-Origin', '*')
     return response
 

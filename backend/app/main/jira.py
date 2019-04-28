@@ -45,7 +45,6 @@ def get_projects():
 # сбор данных для отчета
 def import_issues():
 	jira = login_jira(Config.JIRA_USERNAME, Config.JIRA_PASSWORD)
-	return True
 	component_dict = {component: get_epics(jira, component) for component in Config.JIRA_COMPONENTS}
 
 	for component in component_dict.keys():
@@ -59,12 +58,14 @@ def import_issues():
 				else:
 					timespent = issue.fields.timespent
 
+				print(issue.fields.created, issue.fields.resolutiondate)
+
 				db.issue.insert_one({
 					'key': issue.key,
-					'created': parse(issue.fields.created[0]),
-					'started': parse(issue.fields.customfield_10301[0]) if issue.fields.customfield_10301 else None,
-					'duedate': parse(issue.fields.duedate[0]) if issue.fields.duedate else None,
-					'resolutiondate': parse(issue.fields.resolutiondate[0]) if issue.fields.resolutiondate else None,
+					'created': parse(issue.fields.created),
+					'started': parse(issue.fields.customfield_10301) if issue.fields.customfield_10301 else None,
+					'duedate': parse(issue.fields.duedate) if issue.fields.duedate else None,
+					'resolutiondate': parse(issue.fields.resolutiondate) if issue.fields.resolutiondate else None,
 					'assignee': issue.fields.assignee.name if issue.fields.assignee else None,
 					'timespent': timespent,
 					'status': issue.fields.status.name,
@@ -85,10 +86,10 @@ def import_issues():
 
 		db.issue.insert_one({
 			'key': issue.key,
-			'created': parse(issue.fields.created[0]),
-			'started': parse(issue.fields.customfield_10301[0]) if issue.fields.customfield_10301 else None,
-			'duedate': parse(issue.fields.duedate[0]) if issue.fields.duedate else None,
-			'resolutiondate': parse(issue.fields.resolutiondate[0]) if issue.fields.resolutiondate else None,
+			'created': parse(issue.fields.created),
+			'started': parse(issue.fields.customfield_10301) if issue.fields.customfield_10301 else None,
+			'duedate': parse(issue.fields.duedate) if issue.fields.duedate else None,
+			'resolutiondate': parse(issue.fields.resolutiondate) if issue.fields.resolutiondate else None,
 			'assignee': issue.fields.assignee.name if issue.fields.assignee else None,
 			'timespent': timespent,
 			'status': issue.fields.status.name,

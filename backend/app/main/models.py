@@ -45,7 +45,7 @@ class Issue:
     @staticmethod
     def hours_per_work_type_table(start_datetime=datetime.now().isoformat(),
                                   end_datetime=(datetime.now() + timedelta(days=30)).isoformat(),
-                                  duration='month'):
+                                  duration='month', category=None):
         """
         Трудозатраты по воркам для таблицы
 
@@ -66,9 +66,13 @@ class Issue:
                     'created': {
                         '$gte': start_datetime,
                         '$lt': end_datetime
-                    }
+                    },
+                    "resolutiondate": {'$ne': None}
                 }
         })
+
+        if category:
+            query[0]['$match'].update({'category': category})
 
         query.append({
             '$group': {
@@ -77,9 +81,7 @@ class Issue:
                     'project': "$project",
                 },
                 'total': {
-                    '$sum': {
-                        '$arrayElemAt': ["$timeestimate", 0]
-                    }
+                    '$sum': "$timespent"
                 }
             }
         })
@@ -87,18 +89,14 @@ class Issue:
         if duration == 'month':
             query[1]['$group']['_id'].update({'month': {
                 '$dateToString': {
-                    'date': {
-                        '$arrayElemAt': ["$created", 0]
-                    },
+                    'date': "$resolutiondate",
                     'format': "%m %Y"
                 }
             }})
         else:
             query[1]['$group']['_id'].update({'week': {
                 '$dateToString': {
-                    'date': {
-                        '$arrayElemAt': ["$created", 0]
-                    },
+                    'date': "$resolutiondate",
                     'format': "%U %Y"
                 }
             }})
@@ -111,18 +109,13 @@ class Issue:
                 },
                 'hours': {
                     '$push': {
-                        # если неделя
-                        'k': "$_id.week",
-                        # если месяц
-                        'k': "$_id.month",
-                        'v': "$total"
                     }
                 }
             }
         })
 
         if duration == 'week':
-            query[2]['$group']['hours']['$push'].update({'k': "$_id.week"})
+            query[2]['$group']['hours']['$push'].update({'k': "$_id.week", 'v': "$total"})
         else:
             query[2]['$group']['hours']['$push'].update({'k': "$_id.month",
                                                          'v': "$total"})
@@ -139,6 +132,100 @@ class Issue:
             '$project': {
                 'category': "$_id.category",
                 'project': "$_id.project",
+                'hours': 1,
+                '_id': 0
+            }
+        })
+
+        return list(db.issue.aggregate(query))
+
+    @staticmethod
+    def hours_per_work_type_chart(start_datetime=datetime.now().isoformat(),
+                                  end_datetime=(datetime.now() + timedelta(days=30)).isoformat(),
+                                  duration='month', category=None):
+        """
+        Трудозатраты по воркам для графика
+
+        Args:
+            start_datetime (str): Дата начала в формате гггг-мм-дд
+            end_datetime (str): Дата окончания в формате гггг-мм-дд
+            duration (str): Продолжительность: month или week
+
+        Returns:
+              list
+        """
+
+        query = list()
+
+        query.append({
+            '$match':
+                {
+                    'created': {
+                        '$gte': start_datetime,
+                        '$lt': end_datetime
+                    },
+                    "resolutiondate": {'$ne': None}
+                }
+        })
+
+        if category:
+            query[0]['$match'].update({'category': category})
+
+        query.append({
+            '$group': {
+                '_id': {
+                    'category': "$category"
+                },
+                'total': {
+                    '$sum': "$timespent"
+                }
+            }
+        })
+
+        if duration == 'month':
+            query[1]['$group']['_id'].update({'month': {
+                '$dateToString': {
+                    'date': "$resolutiondate",
+                    'format': "%m %Y"
+                }
+            }})
+        else:
+            query[1]['$group']['_id'].update({'week': {
+                '$dateToString': {
+                    'date': "$resolutiondate",
+                    'format': "%U %Y"
+                }
+            }})
+
+        query.append({
+            '$group': {
+                '_id': {
+                    'category': "$_id.category"
+                },
+                'hours': {
+                    '$push': {
+                    }
+                }
+            }
+        })
+
+        if duration == 'week':
+            query[2]['$group']['hours']['$push'].update({'k': "$_id.week", 'v': "$total"})
+        else:
+            query[2]['$group']['hours']['$push'].update({'k': "$_id.month",
+                                                         'v': "$total"})
+
+        query.append({
+            '$addFields': {
+                'hours': {
+                    '$arrayToObject': "$hours"
+                }
+            }
+        })
+
+        query.append({
+            '$project': {
+                'category': "$_id.category",
                 'hours': 1,
                 '_id': 0
             }
