@@ -1,5 +1,5 @@
 from config.config import Config
-from app.main.models import Issue
+from app.create_app import db
 from jira import JIRA
 import requests
 import base64
@@ -49,19 +49,49 @@ def import_issues():
 		epic_list = component_dict[component]
 		for epic in epic_list:
 			jql = '"Ссылка на эпик" = "{}" ORDER BY priority DESC, due ASC'.format(epic.key)
-			epic_issues = custom_issue(jira.search_issues(jql, maxResults=False))
+			epic_issues = jira.search_issues(jql, maxResults=False)
 			for issue in epic_issues:
-				new_issue = Issue(
-					issue.key,
-					issue.fields.created,
-					issue.fields.assignee.name,
-					issue.fields.resolutiondate,
-					issue.fields.timeestimate,
-					issue.fields.status.name,
-					component,
-					epic.key,
-					'categoty')
-				new_issue.save()
+				if not issue.fields.timespent and issue.fields.resolutiondate:
+					timespent = issue.fields.timeoriginalestimate
+				else:
+					timespent = issue.fields.timespent
+
+				db.issue.insert_one({
+					'key': issue.key,
+					'created': parse(issue.fields.created[0]),
+					'started': parse(issue.fields.customfield_10301[0]) if issue.fields.customfield_10301 else None,
+					'plan_finish': parse(issue.fields.duedate[0]) if issue.fields.duedate else None,
+					'fact_finish': parse(issue.fields.resolutiondate[0]) if issue.fields.resolutiondate else None,
+					'assignee': issue.fields.assignee.name if issue.fields.assignee else None,
+					'timespent': timespent,
+					'status': issue.fields.status.name,
+					'component': component,
+					'project': epic.key,
+					'category': Config.JIRA_CATEGORIES[issue.fields.project.key]})
+
+	# PlanSharing
+	component = 'PlanSharing'
+	project = 'ПланШеринг'
+	jql = 'project = {} ORDER BY key ASC'.format(project)
+	project_issues = jira.search_issues(jql, maxResults=False)
+	for issue in project_issues:
+		if not issue.fields.timespent and issue.fields.resolutiondate:
+			timespent = issue.fields.timeoriginalestimate
+		else:
+			timespent = issue.fields.timespent
+
+		db.issue.insert_one({
+			'key': issue.key,
+			'created': parse(issue.fields.created[0]),
+			'started': parse(issue.fields.customfield_10301[0]) if issue.fields.customfield_10301 else None,
+			'duedate': parse(issue.fields.duedate[0]) if issue.fields.duedate else None,
+			'resolutiondate': parse(issue.fields.resolutiondate[0]) if issue.fields.resolutiondate else None,
+			'assignee': issue.fields.assignee.name if issue.fields.assignee else None,
+			'timespent': timespent,
+			'status': issue.fields.status.name,
+			'component': component,
+			'project': issue.fields.project.key,
+			'category': Config.JIRA_CATEGORIES[issue.fields.project.key]})
 
 	return True
 
@@ -69,24 +99,6 @@ def import_issues():
 # выборка эпиков по заказчику
 def get_epics(jira, component):
 	jql = 'project = "{}" AND component = {} ORDER BY key ASC'.format(Config.JIRA_EPIC_PROJECT, component)
-	epic_list = custom_issue(jira.search_issues(jql, maxResults=False))
+	epic_list = jira.search_issues(jql, maxResults=False)
 
 	return epic_list
-
-
-# изменение формата даты и времени
-def custom_issue(issue_list):
-	for issue in issue_list:
-		# дата создания issue
-		issue.fields.created = parse(issue.fields.created)
-		# дата закрытия issue
-		if issue.fields.resolutiondate:
-			issue.fields.resolutiondate = parse(issue.fields.resolutiondate)
-		# дата начала issue
-		if issue.fields.customfield_10301:
-			issue.fields.customfield_10301 = parse(issue.fields.customfield_10301)
-		# плановое время окончания issue
-		if issue.fields.duedate:
-			issue.fields.duedate = parse(issue.fields.duedate)
-
-	return issue_list
