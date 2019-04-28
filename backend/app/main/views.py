@@ -24,8 +24,10 @@ def get_hours_per_work_type_table():
     except KeyError:
         duration = 'month'
 
-    return jsonify(Issue.hours_per_work_type_table(start_datetime=start_date, end_datetime=end_date,
-                                                   duration=duration))
+    response = jsonify(Issue.hours_per_work_type_table(start_datetime=start_date, end_datetime=end_date,
+                                                       duration=duration))
+    response.headers.add('Access-Control-Allow-Origin', '*')
+    return response
 
 
 @main.route('/', methods=['POST'])
