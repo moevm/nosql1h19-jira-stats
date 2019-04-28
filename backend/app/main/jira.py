@@ -10,9 +10,13 @@ import time
 # авторизация (возвращает объект jira)
 def login_jira(username, password):
 	jira_options = {'server': Config.JIRA_URL}
-	jira = JIRA(
-		options=jira_options,
-		basic_auth=(username, password))
+	try:
+		jira = JIRA(
+			options=jira_options,
+			basic_auth=(username, password))
+		print(jira.current_user())
+	except:
+		raise Exception('Error with Jira auth')
 
 	return jira
 

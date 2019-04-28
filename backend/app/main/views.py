@@ -1,7 +1,7 @@
 from flask import render_template, session, request, redirect, url_for, abort, jsonify, json
 from app.main import main
 from app.main.models import User, Issue
-from app.main.jira import get_projects, import_issues
+from app.main.jira import login_jira, get_projects, import_issues
 from datetime import datetime
 
 
@@ -13,6 +13,15 @@ def index():
 
     return render_template("main/index.html", project_list=project_list)
 
+
+@main.route('/auth/', methods=['GET'])
+def auth():
+    try:
+        jira = login_jira('', '')
+    except Exception as e:
+        return jsonify({'success': False, 'exception': e.__str__()}), 500, {'ContentType': 'application/json'}
+
+    return jsonify({'success': True}), 200, {'ContentType': 'application/json'}
 
 @main.route('/hours_per_work_type_table', methods=['GET'])
 def get_hours_per_work_type_table():
