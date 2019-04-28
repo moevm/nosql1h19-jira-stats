@@ -15,6 +15,7 @@ def login_jira():
 		basic_auth=(
 			Config.JIRA_USERNAME,
 			Config.JIRA_PASSWORD))
+	print(jira.current_user(), type(jira.current_user()))
 
 	return jira
 
@@ -43,6 +44,7 @@ def get_projects():
 # сбор данных для отчета
 def import_issues():
 	jira = login_jira()
+	return True
 	component_dict = {component: get_epics(jira, component) for component in Config.JIRA_COMPONENTS}
 
 	for component in component_dict.keys():
