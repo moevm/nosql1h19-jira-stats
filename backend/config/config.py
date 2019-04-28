@@ -28,6 +28,7 @@ class Config:
         'DESIGN': 'Дизайн'}
     JIRA_EPIC_ID = 'WORK'
     JIRA_EPIC_PROJECT = "WORK'и"
+    JSON_AS_ASCII = False
 
 
 class DevConfig(Config):
