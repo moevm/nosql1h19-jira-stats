@@ -115,7 +115,7 @@ class Issue:
         })
 
         if duration == 'week':
-            query[2]['$group']['hours']['$push'].update({'k': "$_id.week"})
+            query[2]['$group']['hours']['$push'].update({'k': "$_id.week", 'v': "$total"})
         else:
             query[2]['$group']['hours']['$push'].update({'k': "$_id.month",
                                                          'v': "$total"})
@@ -210,7 +210,7 @@ class Issue:
         })
 
         if duration == 'week':
-            query[2]['$group']['hours']['$push'].update({'k': "$_id.week"})
+            query[2]['$group']['hours']['$push'].update({'k': "$_id.week", 'v': "$total"})
         else:
             query[2]['$group']['hours']['$push'].update({'k': "$_id.month",
                                                          'v': "$total"})
