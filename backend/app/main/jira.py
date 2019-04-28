@@ -8,14 +8,15 @@ import time
 
 
 # авторизация (возвращает объект jira)
-def login_jira():
+def login_jira(username, password):
 	jira_options = {'server': Config.JIRA_URL}
-	jira = JIRA(
-		options=jira_options,
-		basic_auth=(
-			Config.JIRA_USERNAME,
-			Config.JIRA_PASSWORD))
-	print(jira.current_user(), type(jira.current_user()))
+	try:
+		jira = JIRA(
+			options=jira_options,
+			basic_auth=(username, password))
+		print(jira.current_user())
+	except:
+		raise Exception('Error with Jira auth')
 
 	return jira
 
@@ -43,7 +44,7 @@ def get_projects():
 
 # сбор данных для отчета
 def import_issues():
-	jira = login_jira()
+	jira = login_jira(Config.JIRA_USERNAME, Config.JIRA_PASSWORD)
 	return True
 	component_dict = {component: get_epics(jira, component) for component in Config.JIRA_COMPONENTS}
 
