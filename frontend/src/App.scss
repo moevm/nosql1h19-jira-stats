@@ -9,3 +9,9 @@
 @import '~simple-line-icons/css/simple-line-icons.css';
 // Import Main styles for this application
 @import './scss/style.scss';
+
+
+.rt-thead.-header {
+  box-shadow: initial !important;
+  border-bottom: 1px solid rgba(0,0,0,0.1);
+}
