@@ -19,6 +19,12 @@ class Config:
         'FinTech',
         'RobotBull',
         'Rusintermo']
+    JIRA_CATEGORIES = {
+        'PSDEV': 'Разработка',
+        'ITDEV': 'Разработка',
+        'ITOPS': 'Разработка',
+        'ADM': 'Администрирование',
+        'DESIGN': 'Дизайн'}
     JIRA_EPIC_ID = 'WORK'
     JIRA_EPIC_PROJECT = "WORK'и"
 
