@@ -14,10 +14,14 @@ def index():
     return render_template("main/index.html", project_list=project_list)
 
 
-@main.route('/auth/', methods=['GET'])
+@main.route('/auth/', methods=['POST'])
 def auth():
+    post_data = request.json
     try:
-        jira = login_jira('', '', '')
+        jira = login_jira(
+            post_data['jira_url'],
+            post_data['username'],
+            post_data['password'])
     except Exception as e:
         return jsonify({'success': False, 'exception': e.__str__()}), 500, {'ContentType': 'application/json'}
 
