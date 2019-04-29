@@ -14,4 +14,4 @@ RUN yum install -y https://centos7.iuscommunity.org/ius-release.rpm && \
     pip3.6 install -r requirements.txt
 COPY . .
 EXPOSE 5000
-CMD ["gunicorn", "app:create_app()", "--bind", "0.0.0.0:5000"]
+CMD ["python3.6", "manage.py", "runserver", "-h", "0.0.0.0", "-p", "5000"]

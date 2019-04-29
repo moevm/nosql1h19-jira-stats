@@ -12,15 +12,23 @@ class Config:
     JIRA_PASSWORD = os.environ.get('JIRA_PASSWORD')
     MONGO_URI = 'mongodb://{}:{}/'.format(os.environ.get('MONGODB_HOST', '127.0.0.1'),
                                           os.environ.get('MONGODB_PORT', '27017'))
-    MONGO_DBS = os.environ.get('MONGODB_NAME')
+    MONGO_DBS = os.environ.get('MONGODB_NAME', 'jira-stats-dev')
+
     JIRA_COMPONENTS = [
         'PlanSharing',
         'ESS',
         'FinTech',
         'RobotBull',
         'Rusintermo']
+    JIRA_CATEGORIES = {
+        'PSDEV': 'Разработка',
+        'ITDEV': 'Разработка',
+        'ITOPS': 'Разработка',
+        'ADM': 'Администрирование',
+        'DESIGN': 'Дизайн'}
     JIRA_EPIC_ID = 'WORK'
     JIRA_EPIC_PROJECT = "WORK'и"
+    JSON_AS_ASCII = False
 
 
 class DevConfig(Config):
