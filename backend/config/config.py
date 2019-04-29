@@ -12,7 +12,7 @@ class Config:
     JIRA_PASSWORD = os.environ.get('JIRA_PASSWORD')
     MONGO_URI = 'mongodb://{}:{}/'.format(os.environ.get('MONGODB_HOST', '127.0.0.1'),
                                           os.environ.get('MONGODB_PORT', '27017'))
-    MONGO_DBS = os.environ.get('MONGODB_NAME')
+    MONGO_DBS = os.environ.get('MONGODB_NAME', 'jira-stats-dev')
 
     JIRA_COMPONENTS = [
         'PlanSharing',
