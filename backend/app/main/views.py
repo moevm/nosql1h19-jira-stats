@@ -12,7 +12,7 @@ def index():
     return render_template("main/index.html", project_list=project_list)
 
 
-@main.route('/auth/', methods=['OPTIONS', 'POST'])
+@main.route('/auth/', methods=['POST'])
 def auth():
     post_data = request.json
     try:
