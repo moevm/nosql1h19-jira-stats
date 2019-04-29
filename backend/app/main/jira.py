@@ -8,8 +8,8 @@ import time
 
 
 # авторизация (возвращает объект jira)
-def login_jira(username, password):
-	jira_options = {'server': Config.JIRA_URL}
+def login_jira(jira_url, username, password):
+	jira_options = {'server': jira_url}
 	try:
 		jira = JIRA(
 			options=jira_options,
@@ -44,7 +44,7 @@ def get_projects():
 
 # сбор данных для отчета
 def import_issues():
-	jira = login_jira(Config.JIRA_USERNAME, Config.JIRA_PASSWORD)
+	jira = login_jira(Config.JIRA_URL, Config.JIRA_USERNAME, Config.JIRA_PASSWORD)
 	component_dict = {component: get_epics(jira, component) for component in Config.JIRA_COMPONENTS}
 
 	for component in component_dict.keys():

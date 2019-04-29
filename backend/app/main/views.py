@@ -17,7 +17,7 @@ def index():
 @main.route('/auth/', methods=['GET'])
 def auth():
     try:
-        jira = login_jira('', '')
+        jira = login_jira('', '', '')
     except Exception as e:
         return jsonify({'success': False, 'exception': e.__str__()}), 500, {'ContentType': 'application/json'}
 
