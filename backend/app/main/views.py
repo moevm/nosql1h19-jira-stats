@@ -22,10 +22,13 @@ def auth():
             post_data['jira_url'],
             post_data['username'],
             post_data['password'])
+        response = jsonify({'success': True}), 200, {'ContentType': 'application/json'}
     except Exception as e:
-        return jsonify({'success': False, 'exception': e.__str__()}), 500, {'ContentType': 'application/json'}
+        response = jsonify({'success': False, 'exception': e.__str__()}), 500, {'ContentType': 'application/json'}
 
-    return jsonify({'success': True}), 200, {'ContentType': 'application/json'}
+    response.headers.add('Access-Control-Allow-Origin', '*')
+
+    return response
 
 @main.route('/hours_per_work_type_table', methods=['GET'])
 def get_hours_per_work_type_table():
