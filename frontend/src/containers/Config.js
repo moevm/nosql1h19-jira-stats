@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-import {Button, Card, CardBody, CardHeader, FormGroup, Input, Label} from "reactstrap";
+import {Button, Card, CardBody, CardHeader, FormGroup, Input, Label, Alert} from "reactstrap";
 import ConfigUtil from '../utils/ConfigUtil'
 
 export default class Config extends Component {
@@ -9,6 +9,11 @@ export default class Config extends Component {
         this.handleInputChange = this.handleInputChange.bind(this);
         this.checkData = this.checkData.bind(this);
         this.state = {
+            alerts: {
+                loading: false,
+                error: false,
+                success: false
+            },
             formData: {
                 jiraUrl: undefined,
                 jiraLogin: undefined,
@@ -28,11 +33,20 @@ export default class Config extends Component {
     }
 
     checkData() {
+        this.setState({...this.state, alerts: {...this.state.alerts, loading: true, error: false, success: false}});
         ConfigUtil.checkJiraAuthData(
             this.state.formData.jiraUrl,
             this.state.formData.jiraLogin,
             this.state.formData.jiraPassword,
-        ).then(() => alert('ok')).catch(() => alert("not ok"));
+        ).then(() => {
+            this.setState({...this.state, alerts: {...this.state.alerts, loading: false, success: true}});
+        }).catch(() => {
+            this.setState({...this.state, alerts: {...this.state.alerts, loading: false, error: true}});
+        });
+    }
+
+    onDismiss(type) {
+        this.setState({...this.state, alerts: {...this.state.alerts, [type]: false}});
     }
 
     render() {
@@ -45,6 +59,15 @@ export default class Config extends Component {
                                 Параметры
                             </CardHeader>
                             <CardBody>
+                                <Alert color="secondary" isOpen={this.state.alerts.loading}>
+                                    Проверка...
+                                </Alert>
+                                <Alert color="danger" isOpen={this.state.alerts.error} toggle={this.onDismiss.bind(this, 'error')}>
+                                    Ошибка
+                                </Alert>
+                                <Alert color="success" isOpen={this.state.alerts.success} toggle={this.onDismiss.bind(this, 'success')}>
+                                    Данные успешно сохранены!
+                                </Alert>
                                 <FormGroup>
                                     <Label htmlFor="jiraUrl">JIRA Server Url</Label>
                                     <Input name="jiraUrl" type="url" value={this.state.formData.jiraUrl}
