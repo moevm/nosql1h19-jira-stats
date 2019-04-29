@@ -9,12 +9,10 @@ from datetime import datetime
 def index():
     project_list = get_projects()
 
-    print(list(Issue.group_by_work_type()))
-
     return render_template("main/index.html", project_list=project_list)
 
 
-@main.route('/auth/', methods=['POST'])
+@main.route('/auth/', methods=['OPTIONS', 'POST'])
 def auth():
     post_data = request.json
     try:
@@ -22,12 +20,9 @@ def auth():
             post_data['jira_url'],
             post_data['username'],
             post_data['password'])
-        response = jsonify({'success': True})
-        status_code = 200
+        return jsonify({'success': True}), 200
     except Exception as e:
-        response = jsonify({'success': False, 'exception': e.__str__()})
-        status_code = 500
-    response.headers.add('Access-Control-Allow-Origin', '*')
+        return jsonify({'success': False, 'exception': e.__str__()}), 500
 
     return response, status_code
 
@@ -44,7 +39,7 @@ def get_hours_per_work_type_table():
 
     response = jsonify(Issue.hours_per_work_type_table(start_datetime=start_date, end_datetime=end_date,
                                                        duration=duration, category=category))
-    response.headers.add('Access-Control-Allow-Origin', '*')
+
     return response
 
 
@@ -61,20 +56,8 @@ def get_hours_per_work_type_chart():
 
     response = jsonify(Issue.hours_per_work_type_chart(start_datetime=start_date, end_datetime=end_date,
                                                        duration=duration, category=category))
-    response.headers.add('Access-Control-Allow-Origin', '*')
+
     return response
-
-
-@main.route('/', methods=['POST'])
-def show_efficiency():
-    options = {
-        'component': request.form['component'],
-        'first_date': request.form['first_date'],
-        'second_date': request.form['second_date']}
-
-    issue_list = Issue(component=options['component']).find_by_component()
-
-    return render_template("main/efficiency.html", issue_list=issue_list)
 
 
 @main.route('/import/', methods=['GET'])

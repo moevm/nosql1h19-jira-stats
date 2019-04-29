@@ -13,8 +13,8 @@ def login_jira(jira_url, username, password):
 	try:
 		jira = JIRA(
 			options=jira_options,
-			basic_auth=(username, password))
-		print(jira.current_user())
+			basic_auth=(username, password),
+			max_retries=1)
 	except:
 		raise Exception('Error with Jira auth')
 
