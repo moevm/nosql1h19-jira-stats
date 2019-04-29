@@ -8,11 +8,14 @@ import WorkTypeUtils from '../utils/WorkTypeUtils'
 import 'react-table/react-table.css'
 import moment from "moment"
 
+import 'moment/locale/ru';
+
 moment.lang('ru', {
     week: {
-        dow: 1 // Monday is the first day of the week
+        dow: 1
     }
 });
+moment.locale('ru');
 
 
 const options = {
@@ -25,15 +28,19 @@ const options = {
                 if (label) {
                     label += ': ';
                 }
-                label += Math.round(tooltipItem.yLabel/3600) + "h " + tooltipItem.yLabel%60 + "m";
+                label += Math.round(tooltipItem.yLabel / 3600) + "h " + tooltipItem.yLabel % 60 + "m";
 
                 return label;
             },
-            // title: (tooltipItems, data) => {
-            //     return tooltipItems[0].xLabel + ' (' +
-            //         moment().day("Monday").year(tooltipItems[0].xLabel.split(' ')[1]).week(tooltipItems[0].xLabel.split(' ')[0]).format("DD.MM.YYYY")
-            //         + ' - ' + moment().day("Sunday").year(tooltipItems[0].xLabel.split(' ')[1]).week(tooltipItems[0].xLabel.split(' ')[0]).format("DD.MM.YYYY") + ')';
-            // }
+            titleWeek: (tooltipItems) => {
+                return tooltipItems[0].xLabel + ' (' +
+                    moment().day("Monday").year(tooltipItems[0].xLabel.split(' ')[1]).week(tooltipItems[0].xLabel.split(' ')[0]).format("DD.MM.YYYY")
+                    + ' - ' + moment().day("Sunday").year(tooltipItems[0].xLabel.split(' ')[1]).week(tooltipItems[0].xLabel.split(' ')[0]).format("DD.MM.YYYY") + ')';
+            },
+            titleMonth: (tooltipItems) => {
+                return tooltipItems[0].xLabel + ' (' +
+                    moment().day("Monday").year(tooltipItems[0].xLabel.split(' ')[1]).month(tooltipItems[0].xLabel.split(' ')[0]).format("MMMM") + ')';
+            }
         }
     },
     maintainAspectRatio: false,
@@ -48,7 +55,7 @@ const bar_options = {
         yAxes: [{
             stacked: true,
             ticks: {
-                callback: (v) => Math.round(v/3600) + "h " + v%60 + "m",
+                callback: (v) => Math.round(v / 3600) + "h " + v % 60 + "m",
                 stepSize: 28800
             }
         }],
@@ -151,7 +158,7 @@ export default class WorkTypes extends Component {
                 Header: week,
                 id: week,
                 accessor: (row) => row.hours[week],
-                Cell: props => Math.round(props.value/3600) + "h " + props.value%60 + "m",
+                Cell: props => Math.round(props.value / 3600) + "h " + props.value % 60 + "m",
                 aggregate: vals => _.sum(vals)
             }))] : [];
         return (
@@ -209,7 +216,17 @@ export default class WorkTypes extends Component {
                                     <Bar data={{
                                         labels: this.state.labels,
                                         datasets: this.state.datasets.map((dataset, i) => ({...dataset, ...colors[i]}))
-                                    }} options={bar_options}/>
+                                    }} options={{
+                                        ...bar_options, tooltips: {
+                                            ...bar_options.tooltips,
+                                            callbacks: {
+                                                ...bar_options.tooltips.callbacks,
+                                                title: this.state.formData.dateGroupFormat === "week" ?
+                                                    bar_options.tooltips.callbacks.titleWeek :
+                                                    bar_options.tooltips.callbacks.titleMonth,
+                                            }
+                                        }
+                                    }}/>
                                 </div>
                             </CardBody>
                         </Card>

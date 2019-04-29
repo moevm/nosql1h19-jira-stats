@@ -9,6 +9,7 @@ export default {
                     name: 'Задачи',
                     url: '/tasks',
                     //icon: 'fa fa-tasks',
+                    attributes: { disabled: true },
                 },
                 {
                     name: 'Проекты',
