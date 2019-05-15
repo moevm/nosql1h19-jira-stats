@@ -1,0 +1,37 @@
+{% extends "main/base.html" %}
+
+{% block css %}
+
+    <link rel="stylesheet" href="{{ url_for('static', filename = 'css/main.css') }}">
+
+{% endblock %}
+
+{% block content %}
+
+    <form method="POST" action="/">
+        <!-- выбор проекта -->
+        <p>
+            <label for="project"> <b> Заказчик </b> </label>
+            <select name="component" class="form-control" required>
+                {% for project in project_list %}
+                    <option> {{ project.name }} </option>
+                {% endfor %}
+            </select>
+        </p>
+        <!-- начальная дата отчета -->
+        <p>
+            <label for="first_date"> <b> С </b> </label>
+            <input type="date" name="first_date" class="form-control" required>
+        </p>
+        <!-- конечная дата отчета -->
+        <p>
+            <label for="second_date"> <b> По </b> </label>
+            <input type="date" name="second_date" class="form-control" required>
+        </p>
+        <!-- кнопка -->
+        <p>
+            <input type="submit" value="Выбрать">
+        </p>
+    </form>
+
+{% endblock %}
