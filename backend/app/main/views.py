@@ -1,4 +1,3 @@
-import os
 from flask import render_template, session, request, redirect, url_for, abort, jsonify, json
 from app.main import main
 from app.main.models import User, Issue
@@ -15,9 +14,9 @@ def auth():
             post_data['jira_url'],
             post_data['username'],
             post_data['password'])
-        os.environ['JIRA_URL'] = post_data['jira_url']
-        os.environ['JIRA_USERNAME'] = post_data['username']
-        os.environ['JIRA_PASSWORD'] = post_data['password']
+        Config.JIRA_URL = post_data['jira_url']
+        Config.JIRA_USERNAME = post_data['username']
+        Config.JIRA_PASSWORD = post_data['password']
         return jsonify({'success': True}), 200
     except Exception as e:
         Config.SENTRY_CLIENT.captureException()
