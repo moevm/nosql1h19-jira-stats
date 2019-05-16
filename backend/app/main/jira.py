@@ -54,7 +54,6 @@ def import_issues():
             jql = '"Ссылка на эпик" = "{}" ORDER BY priority DESC, due ASC'.format(epic.key)
             epic_issues = jira.search_issues(jql, maxResults=False)
             for issue in epic_issues:
-
                 print(issue.fields.created, issue.fields.resolutiondate)
 
                 db.issue.insert_one({
@@ -77,11 +76,6 @@ def import_issues():
     jql = 'project = {} ORDER BY key ASC'.format(project)
     project_issues = jira.search_issues(jql, maxResults=False)
     for issue in project_issues:
-        if not issue.fields.timespent and issue.fields.resolutiondate:
-            timespent = issue.fields.timeoriginalestimate
-        else:
-            timespent = issue.fields.timespent
-
         db.issue.insert_one({
             'key': issue.key,
             'created': parse(issue.fields.created),
@@ -89,7 +83,8 @@ def import_issues():
             'duedate': parse(issue.fields.duedate) if issue.fields.duedate else None,
             'resolutiondate': parse(issue.fields.resolutiondate) if issue.fields.resolutiondate else None,
             'assignee': issue.fields.assignee.name if issue.fields.assignee else None,
-            'timespent': timespent,
+            'timespent': issue.fields.timespent,
+            'timeoriginalestimate': issue.fields.timeoriginalestimate,
             'status': issue.fields.status.name,
             'component': component,
             'project': issue.fields.project.key,
