@@ -56,6 +56,11 @@ def import_issues():
             for issue in epic_issues:
                 print(issue.fields.created, issue.fields.resolutiondate)
 
+                if not issue.fields.timespent and issue.fields.resolutiondate:
+                    timespent = issue.fields.timeoriginalestimate
+                else:
+                    timespent = issue.fields.timespent
+
                 db.issue.insert_one({
                     'key': issue.key,
                     'created': parse(issue.fields.created),
@@ -63,8 +68,7 @@ def import_issues():
                     'duedate': parse(issue.fields.duedate) if issue.fields.duedate else None,
                     'resolutiondate': parse(issue.fields.resolutiondate) if issue.fields.resolutiondate else None,
                     'assignee': issue.fields.assignee.name if issue.fields.assignee else None,
-                    'timespent': issue.fields.timespent if issue.fields.timespent else None,
-                    'timeoriginalestimate': issue.fields.timeoriginalestimate if issue.fields.timeoriginalestimate else None,
+                    'timespent': timespent,
                     'status': issue.fields.status.name,
                     'component': component,
                     'project': epic.key,
@@ -83,7 +87,7 @@ def import_issues():
             'duedate': parse(issue.fields.duedate) if issue.fields.duedate else None,
             'resolutiondate': parse(issue.fields.resolutiondate) if issue.fields.resolutiondate else None,
             'assignee': issue.fields.assignee.name if issue.fields.assignee else None,
-            'timespent': issue.fields.timespent if issue.fields.timespent else None,
+            'timespent': timespent,
             'timeoriginalestimate': issue.fields.timeoriginalestimate if issue.fields.timeoriginalestimate else None,
             'status': issue.fields.status.name,
             'component': component,

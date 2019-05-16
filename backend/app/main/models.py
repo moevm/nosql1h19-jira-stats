@@ -45,7 +45,7 @@ class Issue:
     @staticmethod
     def hours_per_work_type_table(start_datetime=datetime.now().isoformat(),
                                   end_datetime=(datetime.now() + timedelta(days=30)).isoformat(),
-                                  duration='month', category=None):
+                                  duration='month', category="all"):
         """
         Трудозатраты по воркам для таблицы
 
@@ -142,7 +142,7 @@ class Issue:
     @staticmethod
     def hours_per_work_type_chart(start_datetime=datetime.now().isoformat(),
                                   end_datetime=(datetime.now() + timedelta(days=30)).isoformat(),
-                                  duration='month', category=None):
+                                  duration='month', category="all"):
         """
         Трудозатраты по воркам для графика
 
@@ -236,7 +236,7 @@ class Issue:
     @staticmethod
     def hours_per_project_assignee_chart(start_datetime=datetime.now().isoformat(),
                                          end_datetime=(datetime.now() + timedelta(days=30)).isoformat(),
-                                         assignee="gitlab", category="Разработка", project="ITDEV"):
+                                         assignee="all", category="all", project="all"):
         query = list()
         query.append({
             "$match": {
@@ -264,7 +264,7 @@ class Issue:
                     "$sum": "$timespent"
                 },
                 "totalExpect": {
-                    "$sum": "$timespent"
+                    "$sum": "$timeoriginalestimate"
                 }
             }
         })
@@ -298,10 +298,10 @@ class Issue:
         query.append({
             "$project": {
                 "hours": [{
-                    "type": "spent",
+                    "type": "Фиктические",
                     "hours": "$hoursSpent"
                 }, {
-                    "type": "expect",
+                    "type": "Оценочные",
                     "hours": "$hoursExpect"
                 }],
                 "_id": 0
