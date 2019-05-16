@@ -236,20 +236,22 @@ class Issue:
     @staticmethod
     def hours_per_project_assignee_chart(start_datetime=datetime.now().isoformat(),
                                          end_datetime=(datetime.now() + timedelta(days=30)).isoformat(),
-                                         assignee="all", category="all", project="all"):
+                                         assignee=None, category=None, project=None):
         query = list()
         query.append({
             "$match": {
                 "created": {
                     "$gte": start_datetime,
                     "$lt": end_datetime
-                },
-                "category": category,
-                "assignee": assignee,
-                "project": project,
-
+                }
             }
         })
+        if category:
+            query[0]["category"] = category
+        if assignee:
+            query[0]["assignee"] = assignee
+        if project:
+            query[0]["project"] = project
         query.append({
             "$group": {
                 "_id": {
