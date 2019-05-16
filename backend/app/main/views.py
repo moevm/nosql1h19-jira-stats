@@ -59,15 +59,18 @@ def get_hours_per_work_type_chart():
 
 @main.route('/hours_per_project_assignee_chart', methods=['GET'])
 def hours_per_project_assignee_chart():
-    start_date = datetime.strptime(request.args.get('start_date'), '%Y-%m-%d')
-    end_date = datetime.strptime(request.args.get('end_date'), '%Y-%m-%d')
-    category = request.args.get('category', None)
-    project = request.args.get('project', None)
-    assignee = request.args.get('assignee', None)
+    try:
+        start_date = datetime.strptime(request.args.get('start_date'), '%Y-%m-%d')
+        end_date = datetime.strptime(request.args.get('end_date'), '%Y-%m-%d')
+        category = request.args.get('category', None)
+        project = request.args.get('project', None)
+        assignee = request.args.get('assignee', None)
 
-    response = jsonify(Issue.hours_per_work_type_chart(start_datetime=start_date, end_datetime=end_date,
-                                                       project=project, category=category, assignee=assignee))
-
+        response = jsonify(Issue.hours_per_work_type_chart(start_datetime=start_date, end_datetime=end_date,
+                                                           project=project, category=category, assignee=assignee))
+    except Exception as e:
+        Config.SENTRY_CLIENT.captureException()
+        response = jsonify({'success': False, 'exception': e.__str__()}), 500
     return response
 
 
