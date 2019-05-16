@@ -233,6 +233,91 @@ class Issue:
 
         return list(db.issue.aggregate(query))
 
+    @staticmethod
+    def hours_per_project_assignee_chart(start_datetime=datetime.now().isoformat(),
+                                         end_datetime=(datetime.now() + timedelta(days=30)).isoformat(),
+                                         assignee="gitlab", category="Разработка", project="ITDEV"):
+        query = list()
+        query.append({
+            "$match": {
+                "created": {
+                    "$gte": start_datetime,
+                    "$lt": end_datetime
+                },
+                "category": category,
+                "assignee": assignee,
+                "project": project,
+
+            }
+        })
+        query.append({
+            "$group": {
+                "_id": {
+                    "week": {
+                        "$dateToString": {
+                            "date": "$created",
+                            "format": "%U %Y"
+                        }
+                    }
+                },
+                "totalSpent": {
+                    "$sum": "$timespent"
+                },
+                "totalExpect": {
+                    "$sum": "$timespent"
+                }
+            }
+        })
+        query.append({
+            "$group": {
+                "_id": {},
+                "hoursSpent": {
+                    "$push": {
+                        "k": "$_id.week",
+                        "v": "$totalSpent"
+                    }
+                },
+                "hoursExpect": {
+                    "$push": {
+                        "k": "$_id.week",
+                        "v": "$totalExpect"
+                    }
+                }
+            }
+        })
+        query.append({
+            "$addFields": {
+                "hoursSpent": {
+                    "$arrayToObject": "$hoursSpent"
+                },
+                "hoursExpect": {
+                    "$arrayToObject": "$hoursExpect"
+                }
+            }
+        })
+        query.append({
+            "$project": {
+                "hours": [{
+                    "type": "spent",
+                    "hours": "$hoursSpent"
+                }, {
+                    "type": "expect",
+                    "hours": "$hoursExpect"
+                }],
+                "_id": 0
+            }
+        })
+        query.append({
+            "$unwind": "$hours"
+        })
+        query.append({
+            "$project": {
+                "type": "$hours.type",
+                "hours": "$hours.hours"
+            }
+        })
+        return list(db.issue.aggregate(query))
+
 
 class User:
 

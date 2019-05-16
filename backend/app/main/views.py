@@ -57,6 +57,20 @@ def get_hours_per_work_type_chart():
     return response
 
 
+@main.route('/hours_per_project_assignee_chart', methods=['GET'])
+def hours_per_project_assignee_chart():
+    start_date = datetime.strptime(request.args.get('start_date'), '%Y-%m-%d')
+    end_date = datetime.strptime(request.args.get('end_date'), '%Y-%m-%d')
+    category = request.args.get('category')
+    project = request.args.get('project')
+    assignee = request.args.get('assignee')
+
+    response = jsonify(Issue.hours_per_work_type_chart(start_datetime=start_date, end_datetime=end_date,
+                                                       project=project, category=category, assignee=assignee))
+
+    return response
+
+
 @main.route('/import/', methods=['GET'])
 def import_jira_issues():
     try:
