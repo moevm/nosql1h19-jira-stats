@@ -1,15 +1,10 @@
+import os
 from flask import render_template, session, request, redirect, url_for, abort, jsonify, json
 from app.main import main
 from app.main.models import User, Issue
 from app.main.jira import login_jira, get_projects, import_issues
 from datetime import datetime
-
-
-@main.route('/', methods=['GET'])
-def index():
-    project_list = get_projects()
-
-    return render_template("main/index.html", project_list=project_list)
+from config.config import Config
 
 
 @main.route('/auth/', methods=['POST'])
@@ -20,11 +15,14 @@ def auth():
             post_data['jira_url'],
             post_data['username'],
             post_data['password'])
+        os.environ['JIRA_URL'] = post_data['jira_url']
+        os.environ['JIRA_USERNAME'] = post_data['username']
+        os.environ['JIRA_PASSWORD'] = post_data['password']
         return jsonify({'success': True}), 200
     except Exception as e:
+        Config.SENTRY_CLIENT.captureException()
         return jsonify({'success': False, 'exception': e.__str__()}), 500
 
-    return response, status_code
 
 @main.route('/hours_per_work_type_table', methods=['GET'])
 def get_hours_per_work_type_table():
@@ -62,6 +60,10 @@ def get_hours_per_work_type_chart():
 
 @main.route('/import/', methods=['GET'])
 def import_jira_issues():
-    import_issues()
+    try:
+        import_issues()
+    except Exception as e:
+        Config.SENTRY_CLIENT.captureException()
+        return jsonify({'success': False, 'exception': e.__str__()}), 500
 
-    return redirect(url_for('.index'))
+    return jsonify({'success': True}), 200
