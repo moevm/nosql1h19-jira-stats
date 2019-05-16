@@ -1,5 +1,6 @@
 import moment from 'moment'
 import axios from 'axios'
+import _ from 'lodash'
 
 export default class WorkTypeUtils {
     static async getWorkTypeDataTable(type, category, dateStart, dateEnd) {
@@ -26,7 +27,10 @@ export default class WorkTypeUtils {
         });
         let data = response.data;
         data = this.fillEmptyPeriods(data, type, dateStart, dateEnd);
-        const labels = Object.keys(data[0].hours);
+        let labels = [];
+        data.forEach((tmp) => {
+            labels = _.union(labels, Object.keys(tmp.hours));
+        });
         const datasets = data.map((tmp) => ({label: tmp.category, data: Object.values(tmp.hours)}));
         return {labels, datasets};
     }
