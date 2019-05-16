@@ -66,7 +66,7 @@ def hours_per_project_assignee_chart():
         project = request.args.get('project', None)
         assignee = request.args.get('assignee', None)
 
-        response = jsonify(Issue.hours_per_work_type_chart(start_datetime=start_date, end_datetime=end_date,
+        response = jsonify(Issue.hours_per_project_assignee_chart(start_datetime=start_date, end_datetime=end_date,
                                                            project=project, category=category, assignee=assignee))
     except Exception as e:
         Config.SENTRY_CLIENT.captureException()
