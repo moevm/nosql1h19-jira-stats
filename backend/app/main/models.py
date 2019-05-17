@@ -464,7 +464,7 @@ class Issue:
         """
         query = [{
             "$match": {
-                "created": {
+                "resolutiondate": {
                     "$gte": start_datetime,
                     "$lt": end_datetime
                 },
@@ -585,7 +585,7 @@ class Issue:
         """
         query = [{
             "$match": {
-                "created": {
+                "resolutiondate": {
                     "$gte": start_datetime,
                     "$lt": end_datetime
                 },
@@ -594,7 +594,7 @@ class Issue:
             {
                 "$group": {
                     "_id": {
-                        "project": "$project",
+                        "project": "$component",
                         "week": {
                             "$dateToString": {
                                 "date": "$created",
