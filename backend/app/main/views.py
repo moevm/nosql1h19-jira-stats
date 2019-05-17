@@ -4,6 +4,7 @@ from app.main.models import User, Issue
 from app.main.jira import login_jira, get_projects, import_issues
 from datetime import datetime
 from config.config import Config
+import os
 
 
 @main.route('/auth/', methods=['POST'])
@@ -14,9 +15,9 @@ def auth():
             post_data['jira_url'],
             post_data['username'],
             post_data['password'])
-        Config.JIRA_URL = post_data['jira_url']
-        Config.JIRA_USERNAME = post_data['username']
-        Config.JIRA_PASSWORD = post_data['password']
+        os.environ["JIRA_URL"] = post_data['jira_url']
+        os.environ["JIRA_USERNAME"] = post_data['username']
+        os.environ["JIRA_PASSWORD"] = post_data['password']
         return jsonify({'success': True}), 200
     except Exception as e:
         Config.SENTRY_CLIENT.captureException()
@@ -67,7 +68,26 @@ def hours_per_project_assignee_chart():
         assignee = request.args.get('assignee', None)
 
         response = jsonify(Issue.hours_per_project_assignee_chart(start_datetime=start_date, end_datetime=end_date,
-                                                           project=project, category=category, assignee=assignee))
+                                                                  project=project, category=category,
+                                                                  assignee=assignee))
+    except Exception as e:
+        Config.SENTRY_CLIENT.captureException()
+        response = jsonify({'success': False, 'exception': e.__str__()}), 500
+    return response
+
+
+@main.route('/hours_per_project_assignee_table', methods=['GET'])
+def hours_per_project_assignee_table():
+    try:
+        start_date = datetime.strptime(request.args.get('start_date'), '%Y-%m-%d')
+        end_date = datetime.strptime(request.args.get('end_date'), '%Y-%m-%d')
+        category = request.args.get('category', None)
+        project = request.args.get('project', None)
+        assignee = request.args.get('assignee', None)
+
+        response = jsonify(Issue.hours_per_project_assignee_table(start_datetime=start_date, end_datetime=end_date,
+                                                                  project=project, category=category,
+                                                                  assignee=assignee))
     except Exception as e:
         Config.SENTRY_CLIENT.captureException()
         response = jsonify({'success': False, 'exception': e.__str__()}), 500

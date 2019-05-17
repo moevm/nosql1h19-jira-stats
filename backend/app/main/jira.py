@@ -5,6 +5,7 @@ import requests
 import base64
 from dateutil.parser import parse
 import time
+import os
 
 
 # авторизация (возвращает объект jira)
@@ -25,8 +26,8 @@ def login_jira(jira_url, username, password):
 def prepare_jira_creds():
     encoded_credentials = base64.b64encode(
         bytes('{}:{}'.format(
-            Config.JIRA_USERNAME,
-            Config.JIRA_PASSWORD),
+            os.environ.get('JIRA_USERNAME'),
+            os.environ.get('JIRA_PASSWORD')),
             'utf-8'))
 
     return 'Basic ' + encoded_credentials.decode('utf-8')
@@ -45,7 +46,7 @@ def get_projects():
 # сбор данных для отчета
 def import_issues():
     db.issue.drop()
-    jira = login_jira(Config.JIRA_URL, Config.JIRA_USERNAME, Config.JIRA_PASSWORD)
+    jira = login_jira(os.environ.get('JIRA_URL'), os.environ.get('JIRA_USERNAME'), os.environ.get('JIRA_PASSWORD'))
     component_dict = {component: get_epics(jira, component) for component in Config.JIRA_COMPONENTS}
 
     for component in component_dict.keys():
@@ -69,6 +70,7 @@ def import_issues():
                     'resolutiondate': parse(issue.fields.resolutiondate) if issue.fields.resolutiondate else None,
                     'assignee': issue.fields.assignee.name if issue.fields.assignee else None,
                     'timespent': timespent,
+                    'timeoriginalestimate': issue.fields.timeoriginalestimate if issue.fields.timeoriginalestimate else None,
                     'status': issue.fields.status.name,
                     'component': component,
                     'project': epic.key,
@@ -79,7 +81,12 @@ def import_issues():
     project = 'ПланШеринг'
     jql = 'project = {} ORDER BY key ASC'.format(project)
     project_issues = jira.search_issues(jql, maxResults=False)
+
     for issue in project_issues:
+        if not issue.fields.timespent and issue.fields.resolutiondate:
+            timespent = issue.fields.timeoriginalestimate
+        else:
+            timespent = issue.fields.timespent
         db.issue.insert_one({
             'key': issue.key,
             'created': parse(issue.fields.created),
