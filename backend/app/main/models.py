@@ -63,11 +63,11 @@ class Issue:
         query.append({
             '$match':
                 {
-                    'created': {
+                    'resolutiondate': {
                         '$gte': start_datetime,
                         '$lt': end_datetime
                     },
-                    "resolutiondate": {'$ne': None}
+                    # "resolutiondate": {'$ne': None}
                 }
         })
 
@@ -97,7 +97,7 @@ class Issue:
             query[1]['$group']['_id'].update({'week': {
                 '$dateToString': {
                     'date': "$resolutiondate",
-                    'format': "%U %Y"
+                    'format': "%V %Y"
                 }
             }})
 
@@ -160,11 +160,11 @@ class Issue:
         query.append({
             '$match':
                 {
-                    'created': {
+                    'resolutiondate': {
                         '$gte': start_datetime,
                         '$lt': end_datetime
                     },
-                    "resolutiondate": {'$ne': None}
+                    # "resolutiondate": {'$ne': None}
                 }
         })
 
@@ -193,7 +193,7 @@ class Issue:
             query[1]['$group']['_id'].update({'week': {
                 '$dateToString': {
                     'date': "$resolutiondate",
-                    'format': "%U %Y"
+                    'format': "%V %Y"
                 }
             }})
 
@@ -237,28 +237,41 @@ class Issue:
     def hours_per_project_assignee_chart(start_datetime=datetime.now().isoformat(),
                                          end_datetime=(datetime.now() + timedelta(days=30)).isoformat(),
                                          assignee=None, category=None, project=None):
+        """
+        Трудозатраты по исполнителям для графика
+
+        Args:
+            start_datetime (str): Дата начала в формате гггг-мм-дд
+            end_datetime (str): Дата окончания в формате гггг-мм-дд
+            assignee (str): Исполнитель (ник в Jira)
+            category (str): Категория
+            project (str): Название проекта
+
+        Returns:
+            list
+         """
         query = list()
         query.append({
             "$match": {
-                "created": {
+                "resolutiondate": {
                     "$gte": start_datetime,
                     "$lt": end_datetime
                 }
             }
         })
         if category:
-            query[0]["category"] = category
+            query[0]["$match"].update({"category": category})
         if assignee:
-            query[0]["assignee"] = assignee
+            query[0]["$match"].update({"assignee": assignee})
         if project:
-            query[0]["project"] = project
+            query[0]["$match"].update({"project": project})
         query.append({
             "$group": {
                 "_id": {
                     "week": {
                         "$dateToString": {
-                            "date": "$created",
-                            "format": "%U %Y"
+                            "date": "$resolutiondate",
+                            "format": "%V %Y"
                         }
                     }
                 },
@@ -300,7 +313,7 @@ class Issue:
         query.append({
             "$project": {
                 "hours": [{
-                    "type": "Фиктические",
+                    "type": "Фактические",
                     "hours": "$hoursSpent"
                 }, {
                     "type": "Оценочные",
@@ -318,6 +331,122 @@ class Issue:
                 "hours": "$hours.hours"
             }
         })
+        return list(db.issue.aggregate(query))
+
+    @staticmethod
+    def hours_per_project_assignee_table(start_datetime=datetime.now().isoformat(),
+                                         end_datetime=(datetime.now() + timedelta(days=30)).isoformat(),
+                                         assignee=None, category=None, project=None):
+        """
+        Трудозатраты по исполнителям для таблицы
+
+        Args:
+            start_datetime (str): Дата начала в формате гггг-мм-дд
+            end_datetime (str): Дата окончания в формате гггг-мм-дд
+            assignee (str): Исполнитель (ник в Jira)
+            category (str): Категория
+            project (str): Название проекта
+
+        Returns:
+            list
+         """
+        query = list()
+        query.append({
+            "$match": {
+                "resolutiondate": {
+                    "$gte": start_datetime,
+                    "$lt": end_datetime
+                }
+            }
+        })
+        if category:
+            query[0]["$match"].update({"category": category})
+        if assignee:
+            query[0]["$match"].update({"assignee": assignee})
+        if project:
+            query[0]["$match"].update({"project": project})
+
+        query.append({
+            "$group": {
+                "_id": {
+                    "project": "$project",
+                    "assignee": "$assignee",
+                    "week": {
+                        "$dateToString": {
+                            "date": "$resolutiondate",
+                            "format": "%V %Y"
+                        }
+                    }
+                },
+                "totalSpent": {
+                    "$sum": "$timespent"
+                },
+                "totalExpect": {
+                    "$sum": "$timeoriginalestimate"
+                }
+            }
+        })
+
+        query.append({
+            "$group": {
+                "_id": {
+                    "project": "$_id.project",
+                    "assignee": "$_id.assignee",
+                },
+                "hoursSpent": {
+                    "$push": {
+                        "k": "$_id.week",
+                        "v": "$totalSpent"
+                    }
+                },
+                "hoursExpect": {
+                    "$push": {
+                        "k": "$_id.week",
+                        "v": "$totalExpect"
+                    }
+                }
+            }
+        })
+
+        query.append({
+            "$addFields": {
+                "hoursSpent": {
+                    "$arrayToObject": "$hoursSpent"
+                },
+                "hoursExpect": {
+                    "$arrayToObject": "$hoursExpect"
+                }
+            }
+        })
+
+        query.append({
+            "$project": {
+                "project": "$_id.project",
+                "assignee": "$_id.assignee",
+                "hours": [{
+                    "type": "spent",
+                    "hours": "$hoursSpent"
+                }, {
+                    "type": "expect",
+                    "hours": "$hoursExpect"
+                }],
+                "_id": 0
+            }
+        })
+
+        query.append({
+            "$unwind": "$hours"
+        })
+
+        query.append({
+            "$project": {
+                "project": "$project",
+                "assignee": "$assignee",
+                "type": "$hours.type",
+                "hours": "$hours.hours"
+            }
+        })
+
         return list(db.issue.aggregate(query))
 
 
