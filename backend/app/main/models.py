@@ -424,10 +424,10 @@ class Issue:
                 "project": "$_id.project",
                 "assignee": "$_id.assignee",
                 "hours": [{
-                    "type": "spent",
+                    "type": "Фактические",
                     "hours": "$hoursSpent"
                 }, {
-                    "type": "expect",
+                    "type": "Оценочные",
                     "hours": "$hoursExpect"
                 }],
                 "_id": 0
@@ -449,9 +449,199 @@ class Issue:
 
         return list(db.issue.aggregate(query))
 
+    @staticmethod
+    def hours_per_project_table(start_datetime=datetime.now().isoformat(),
+                                end_datetime=(datetime.now() + timedelta(days=30)).isoformat()):
+        """
+        Трудозатраты по проектам для таблицы
+
+        Args:
+            start_datetime (str): Дата начала в формате гггг-мм-дд
+            end_datetime (str): Дата окончания в формате гггг-мм-дд
+
+        Returns:
+            list
+        """
+        query = [{
+            "$match": {
+                "created": {
+                    "$gte": start_datetime,
+                    "$lt": end_datetime
+                },
+            }
+        },
+            {
+                "$group": {
+                    "_id": {
+                        "week": {
+                            "$dateToString": {
+                                "date": "$resolutiondate",
+                                "format": "%V %Y"
+                            }
+                        }
+                    },
+                    "totalEstimate": {
+                        "$sum": "$timeoriginalestimate"
+                    },
+                    "totalSpent": {
+                        "$sum": "$timespent"
+                    },
+
+                }
+            },
+            {
+                "$facet": {
+                    "statTotalSpent": [
+                        {
+                            "$group": {
+                                "_id": {},
+                                "avgTotalSpent": {
+                                    "$avg": "$totalSpent"
+                                },
+                                "maxTotalSpent": {
+                                    "$max": "$totalSpent"
+                                },
+
+                            }
+                        }
+                    ],
+                    "hoursPerWeek": [
+                        {
+                            "$project": {
+                                "week": "$_id.week",
+                                "totalEstimate": "$totalEstimate",
+                                "totalSpent": "$totalSpent",
+                                "_id": 0
+                            }
+                        }
+                    ],
+
+                }
+            },
+            {
+                "$project": {
+                    "statTotalSpent": {
+                        "$arrayElemAt": ["$statTotalSpent", 0]
+                    },
+                    "hoursPerWeek": "$hoursPerWeek"
+                }
+            },
+            {
+                "$project": {
+                    "statTotalSpent": "$statTotalSpent",
+                    "hoursPerWeek": {
+                        "$map": {
+                            "input": "$hoursPerWeek",
+                            "as": "temp",
+                            "in": {
+                                "$mergeObjects": [
+                                    "$$temp",
+                                    {
+                                        "spentEstimateRatio": {
+                                            "$divide": ["$$temp.totalSpent", "$$temp.totalEstimate"]
+                                        },
+                                        "deviationFromAvg": {
+                                            "$divide": ["$$temp.totalSpent", "$statTotalSpent.avgTotalSpent"]
+                                        },
+                                        "deviationFromMax": {
+                                            "$divide": ["$$temp.totalSpent", "$statTotalSpent.maxTotalSpent"]
+                                        },
+
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "$project": {
+                    "hoursPerWeek": "$hoursPerWeek"
+                }
+            },
+            {
+                "$unwind": "$hoursPerWeek"
+            },
+            {
+                "$replaceRoot": {
+                    "newRoot": "$hoursPerWeek"
+                }
+            }]
+
+        return list(db.issue.aggregate(query))
+
+    @staticmethod
+    def hours_per_project_chart(start_datetime=datetime.now().isoformat(),
+                                end_datetime=(datetime.now() + timedelta(days=30)).isoformat()):
+        """
+        Трудозатраты по проектам для графика
+
+        Args:
+            start_datetime (str): Дата начала в формате гггг-мм-дд
+            end_datetime (str): Дата окончания в формате гггг-мм-дд
+
+        Returns:
+            list
+        """
+        query = [{
+            "$match": {
+                "created": {
+                    "$gte": start_datetime,
+                    "$lt": end_datetime
+                },
+            }
+        },
+            {
+                "$group": {
+                    "_id": {
+                        "project": "$project",
+                        "week": {
+                            "$dateToString": {
+                                "date": "$created",
+                                "format": "%V %Y"
+                            }
+                        }
+                    },
+                    "totalSpent": {
+                        "$sum": "$timespent"
+                    },
+                    "totalExpect": {
+                        "$sum": "$timeoriginalestimate"
+                    }
+                }
+            },
+            {
+                "$group": {
+                    "_id": {
+                        "project": "$_id.project",
+                    },
+                    "hours": {
+                        "$push": {
+                            "k": "$_id.week",
+                            "v": "$totalSpent"
+                        }
+                    },
+                }
+            },
+            {
+                "$addFields": {
+                    "hours": {
+                        "$arrayToObject": "$hours"
+                    },
+                }
+            },
+            {
+                "$project": {
+                    "project": "$_id.project",
+                    "assignee": "$_id.assignee",
+                    "hours": "$hours",
+                    "_id": 0
+                }
+            }]
+        return list(db.issue.aggregate(query))
+
 
 class User:
-
     def __init__(
             self,
             login='',
