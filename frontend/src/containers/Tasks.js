@@ -5,6 +5,7 @@ import {CustomTooltips} from '@coreui/coreui-plugin-chartjs-custom-tooltips';
 import ReactTable from "react-table";
 import _ from 'lodash'
 import 'react-table/react-table.css'
+import ProjectAssigneeUtil from '../utils/ProjectAssigneeUtil'
 import moment from "moment"
 
 import 'moment/locale/ru';
@@ -48,7 +49,7 @@ const line_options = {
         yAxes: [{
             ticks: {
                 callback: (v) => Math.round(v / 3600) + "h " + v % 60 + "m",
-                stepSize: 3600
+                stepSize: 36000
             }
         }],
     }
@@ -72,19 +73,8 @@ export default class Tasks extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            labels: [
-                '01 2019', '02 2019', '03 2019', '04 2019', '05 2019', '06 2019'
-            ],
-            datasets: [
-                {
-                    label: 'Оценочные',
-                    data: [_.random(0, 10000, true), _.random(0, 10000, true), _.random(0, 10000, true), _.random(0, 10000, true), _.random(0, 10000, true), _.random(0, 10000, true)]
-                },
-                {
-                    label: 'Фактические',
-                    data: [_.random(0, 10000, true), _.random(0, 10000, true), _.random(0, 10000, true), _.random(0, 10000, true), _.random(0, 10000, true), _.random(0, 1000, true)]
-                }
-            ],
+            labels: [],
+            datasets: [],
             tableData: [],
             formData: {
                 dateStart: moment().subtract(3, "month").format('YYYY-MM-DD'),
@@ -118,20 +108,21 @@ export default class Tasks extends Component {
         //             tableData: data
         //         })
         //     );
-        // WorkTypeUtils.getWorkTypeDataChart(
-        //     this.state.formData.dateGroupFormat,
-        //     this.state.formData.workType,
-        //     this.state.formData.dateStart,
-        //     this.state.formData.dateEnd)
-        //     .then((data) => this.setState({
-        //         ...this.state,
-        //         labels: data.labels,
-        //         datasets: data.datasets
-        //     }));
+        ProjectAssigneeUtil.getProjectAssigneeDataChart(
+            this.state.formData.workType,
+            this.state.formData.dateStart,
+            this.state.formData.dateEnd)
+            .then((data) => {
+                this.setState({
+                    ...this.state,
+                    labels: data.labels,
+                    datasets: data.datasets
+                });
+            });
     }
 
     componentDidMount() {
-        // this.updateData();
+        this.updateData();
     }
 
     render() {
