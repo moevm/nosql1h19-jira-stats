@@ -77,10 +77,11 @@ export default class Tasks extends Component {
             datasets: [],
             tableData: [],
             formData: {
-                dateStart: moment().subtract(3, "month").format('YYYY-MM-DD'),
+                dateStart: moment().subtract(1, "month").format('YYYY-MM-DD'),
                 dateEnd: moment().format('YYYY-MM-DD'),
-                dateGroupFormat: 'month',
                 workType: 'all',
+                project: 'all',
+                assignee: 'all',
             }
         };
         this.handleInputChange = this.handleInputChange.bind(this);
@@ -100,6 +101,8 @@ export default class Tasks extends Component {
     updateData() {
         ProjectAssigneeUtil.getProjectAssigneeDataTable(
             this.state.formData.workType,
+            this.state.formData.project,
+            this.state.formData.assignee,
             this.state.formData.dateStart,
             this.state.formData.dateEnd)
             .then((data) =>
@@ -110,6 +113,8 @@ export default class Tasks extends Component {
             );
         ProjectAssigneeUtil.getProjectAssigneeDataChart(
             this.state.formData.workType,
+            this.state.formData.project,
+            this.state.formData.assignee,
             this.state.formData.dateStart,
             this.state.formData.dateEnd)
             .then((data) =>
@@ -165,15 +170,6 @@ export default class Tasks extends Component {
                                            onChange={this.handleInputChange}/>
                                 </FormGroup>
                                 <FormGroup>
-                                    <Label htmlFor="dateGroupFormat">Формат</Label>
-                                    <Input type="select" name="dateGroupFormat"
-                                           value={this.state.formData.dateGroupFormat}
-                                           onChange={this.handleInputChange}>
-                                        <option value="month">Месяц</option>
-                                        <option value="week">Неделя</option>
-                                    </Input>
-                                </FormGroup>
-                                <FormGroup>
                                     <Label htmlFor="workType">Направление</Label>
                                     <Input type="select" name="workType" value={this.state.formData.workType}
                                            onChange={this.handleInputChange}>
@@ -181,6 +177,49 @@ export default class Tasks extends Component {
                                         <option value="Разработка">Разработка</option>
                                         <option value="Дизайн">Дизайн</option>
                                         <option value="Администрирование">Администрирование</option>
+                                    </Input>
+                                </FormGroup>
+                                <FormGroup>
+                                    <Label htmlFor="project">Проект</Label>
+                                    <Input type="select" name="project" value={this.state.formData.project}
+                                           onChange={this.handleInputChange}>
+                                        <option value="all">Все</option>
+                                        <option value="PSDEV">PSDEV</option>
+                                        <option value="WORK-1">WORK-1</option>
+                                        <option value="WORK-2">WORK-2</option>
+                                        <option value="WORK-4">WORK-4</option>
+                                        <option value="WORK-5">WORK-5</option>
+                                        <option value="WORK-6">WORK-6</option>
+                                        <option value="WORK-7">WORK-7</option>
+                                        <option value="WORK-8">WORK-8</option>
+                                        <option value="WORK-9">WORK-9</option>
+                                        <option value="WORK-10">WORK-10</option>
+                                        <option value="WORK-11">WORK-11</option>
+                                        <option value="WORK-12">WORK-12</option>
+                                        <option value="WORK-13">WORK-13</option>
+                                        <option value="WORK-15">WORK-15</option>
+                                        <option value="WORK-16">WORK-16</option>
+                                        <option value="WORK-17">WORK-17</option>
+                                        <option value="WORK-18">WORK-18</option>
+                                        <option value="WORK-19">WORK-19</option>
+                                        <option value="WORK-20">WORK-20</option>
+                                        <option value="WORK-21">WORK-21</option>
+                                        <option value="WORK-22">WORK-22</option>
+                                    </Input>
+                                </FormGroup>
+                                <FormGroup>
+                                    <Label htmlFor="assignee">Исполнитель</Label>
+                                    <Input type="select" name="assignee" value={this.state.formData.assignee}
+                                           onChange={this.handleInputChange}>
+                                        <option value="all">Все</option>
+                                        <option value="n.fedoseev">n.fedoseev</option>
+                                        <option value="l.kutsenok">l.kutsenok</option>
+                                        <option value="m.sergeenkov">m.sergeenkov</option>
+                                        <option value="a.sergeenkov">a.sergeenkov</option>
+                                        <option value="katerina.f">katerina.f</option>
+                                        <option value="s.grechkov">s.grechkov</option>
+                                        <option value="k.fokin">k.fokin</option>
+                                        <option value="v.grushevskaya">v.grushevskaya</option>
                                     </Input>
                                 </FormGroup>
                                 <div className="form-actions">
@@ -196,21 +235,11 @@ export default class Tasks extends Component {
                                 График распределения трудозатрат по направлениям
                             </CardHeader>
                             <CardBody>
-                                <div className="chart-wrapper" style={{height: 355}}>
+                                <div className="chart-wrapper" style={{height: 435}}>
                                     <Line data={{
                                         labels: this.state.labels,
                                         datasets: this.state.datasets.map((dataset, i) => ({...dataset, ...colors[i]}))
-                                    }} options={line_options
-                                        // ...bar_options, tooltips: {
-                                        //     ...bar_options.tooltips,
-                                        //     callbacks: {
-                                        //         ...bar_options.tooltips.callbacks,
-                                        //         title: this.state.formData.dateGroupFormat === "week" ?
-                                        //             bar_options.tooltips.callbacks.titleWeek :
-                                        //             bar_options.tooltips.callbacks.titleMonth,
-                                        //     }
-                                        // }
-                                    }/>
+                                    }} options={line_options}/>
                                 </div>
                             </CardBody>
                         </Card>

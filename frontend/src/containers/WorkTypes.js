@@ -158,7 +158,7 @@ export default class WorkTypes extends Component {
                 Header: week,
                 id: week,
                 accessor: (row) => row.hours[week],
-                Cell: props => props.value ? Math.round(props.value / 3600) + "h " + props.value % 60 + "m" : '0h 0m',
+                Cell: props => props.value ? Math.round(props.value / 3600) + "h " + props.value % 60 + "m" : '',
                 aggregate: vals => _.sum(vals)
             }))] : [];
         return (

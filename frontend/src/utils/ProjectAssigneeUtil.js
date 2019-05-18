@@ -5,13 +5,13 @@ import moment from "moment";
 import {API_URL} from "../config";
 
 export default class ProjectAssigneeUtil {
-    static async getProjectAssigneeDataTable(category, dateStart, dateEnd) {
+    static async getProjectAssigneeDataTable(category, project, assignee, dateStart, dateEnd) {
         let response = await axios.get(API_URL + 'hours_per_project_assignee_table', {
             params: {
                 start_date: dateStart,
                 end_date: dateEnd,
-                // project: 'all',
-                // assignee: 'all',
+                project: project !== 'all' ? project : undefined,
+                assignee: assignee !== 'all' ? assignee : undefined,
                 category: category !== 'all' ? category : undefined,
             }
         });
@@ -19,13 +19,13 @@ export default class ProjectAssigneeUtil {
         return this.fillEmptyPeriods(data, dateStart, dateEnd);
     }
 
-    static async getProjectAssigneeDataChart(category, dateStart, dateEnd) {
+    static async getProjectAssigneeDataChart(category, project, assignee, dateStart, dateEnd) {
         let response = await axios.get(API_URL + 'hours_per_project_assignee_chart', {
             params: {
                 start_date: dateStart,
                 end_date: dateEnd,
-                // project: 'all',
-                // assignee: 'all',
+                project: project !== 'all' ? project : undefined,
+                assignee: assignee !== 'all' ? assignee : undefined,
                 category: category !== 'all' ? category : undefined,
             }
         });
