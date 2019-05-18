@@ -34,12 +34,12 @@ const options = {
             },
             titleWeek: (tooltipItems) => {
                 return tooltipItems[0].xLabel + ' (' +
-                    moment().day("Monday").year(tooltipItems[0].xLabel.split(' ')[1]).week(tooltipItems[0].xLabel.split(' ')[0]).format("DD.MM.YYYY")
-                    + ' - ' + moment().day("Sunday").year(tooltipItems[0].xLabel.split(' ')[1]).week(tooltipItems[0].xLabel.split(' ')[0]).format("DD.MM.YYYY") + ')';
+                    moment().day("Monday").year(tooltipItems[0].xLabel.split(' ')[1]).week(parseInt(tooltipItems[0].xLabel.split(' ')[0], 10) - 1).add(1, 'days').format("DD.MM.YYYY")
+                    + ' - ' + moment().day("Monday").year(tooltipItems[0].xLabel.split(' ')[1]).week(parseInt(tooltipItems[0].xLabel.split(' ')[0], 10) - 1).add(7, 'days').format("DD.MM.YYYY") + ')';
             },
             titleMonth: (tooltipItems) => {
-                return tooltipItems[0].xLabel + ' (' +
-                    moment().day("Monday").year(tooltipItems[0].xLabel.split(' ')[1]).month(tooltipItems[0].xLabel.split(' ')[0]).format("MMMM") + ')';
+                return (tooltipItems[0].xLabel) + ' (' +
+                    moment().day("Monday").year(tooltipItems[0].xLabel.split(' ')[1]).month(parseInt(tooltipItems[0].xLabel.split(' ')[0], 10) - 1).format("MMMM") + ')';
             }
         }
     },
@@ -134,11 +134,11 @@ export default class WorkTypes extends Component {
             this.state.formData.workType,
             this.state.formData.dateStart,
             this.state.formData.dateEnd)
-            .then((data) => this.setState({
+            .then((data) => {console.log(data); this.setState({
                 ...this.state,
                 labels: data.labels,
                 datasets: data.datasets
-            }));
+            })});
     }
 
     componentDidMount() {
@@ -158,7 +158,7 @@ export default class WorkTypes extends Component {
                 Header: week,
                 id: week,
                 accessor: (row) => row.hours[week],
-                Cell: props => Math.round(props.value / 3600) + "h " + props.value % 60 + "m",
+                Cell: props => props.value ? Math.round(props.value / 3600) + "h " + props.value % 60 + "m" : '0h 0m',
                 aggregate: vals => _.sum(vals)
             }))] : [];
         return (
