@@ -1,10 +1,11 @@
-from flask import render_template, session, request, redirect, url_for, abort, jsonify, json
+from flask import render_template, session, request, redirect, url_for, abort, jsonify, json, send_file
 from app.main import main
 from app.main.models import User, Issue
 from app.main.jira import login_jira, get_projects, import_issues
-from datetime import datetime
+from datetime import datetime, timezone
 from config.config import Config
 import os
+from io import StringIO, BytesIO
 
 
 @main.route('/auth/', methods=['POST'])
@@ -128,4 +129,34 @@ def import_jira_issues():
         Config.SENTRY_CLIENT.captureException()
         return jsonify({'success': False, 'exception': e.__str__()}), 500
 
+    return jsonify({'success': True}), 200
+
+
+@main.route('/export_documents_to_json', methods=['GET'])
+def export_documents_to_json():
+    try:
+        docs_json = Issue.export_documents_to_json()
+        buffer = StringIO()
+        buffer.write(docs_json)
+        binary = BytesIO()
+        binary.write(buffer.getvalue().encode('utf-8'))
+        binary.seek(0)
+        buffer.close()
+        return send_file(filename_or_fp=binary, as_attachment=True,
+                         attachment_filename="jira_stats_export_{}.json".format(
+                             datetime.now().strftime("%d.%m.%Y_%H:%M:%S")))
+    except Exception as e:
+        Config.SENTRY_CLIENT.captureException()
+        return jsonify({'success': False, 'exception': e.__str__()}), 500
+
+
+@main.route('/import_documents_from_json', methods=['POST'])
+def import_documents_from_json():
+    try:
+        fp = request.files["file"]
+        fp.seek(0)
+        Issue.import_documents_from_json(fp.read())
+    except Exception as e:
+        Config.SENTRY_CLIENT.captureException()
+        return jsonify({'success': False, 'exception': e.__str__()}), 500
     return jsonify({'success': True}), 200
