@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
 
+from datetime import datetime, timedelta
+
 from app.create_app import db
 
-from datetime import datetime, timedelta
+from bson.json_util import dumps, loads
 
 
 class Issue:
@@ -41,6 +43,36 @@ class Issue:
 
     def find_by_component(self):
         return db.issue.find({'component': self.component})
+
+    @staticmethod
+    def export_documents_to_json():
+        """
+        Экспорт документов коллекции в JSON
+
+        Returns:
+             str - JSON-строка
+        """
+        cursor = db.issue.find({})
+        docs = list()
+
+        for document in cursor:
+            docs.append(document)
+
+        return dumps(docs)
+
+    @staticmethod
+    def import_documents_from_json(json_string):
+        """
+        Импорт документов коллекции из JSON
+
+        Args:
+            json_string (str): JSON-строка с документами
+
+        """
+        db.issue.drop()
+        docs = loads(json_string)
+        for document in docs:
+            db.issue.insert_one(document)
 
     @staticmethod
     def hours_per_work_type_table(start_datetime=datetime.now().isoformat(),
