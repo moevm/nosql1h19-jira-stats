@@ -2,9 +2,11 @@ import moment from 'moment'
 import axios from 'axios'
 import _ from 'lodash'
 
+import {API_URL} from "../config";
+
 export default class WorkTypeUtils {
     static async getWorkTypeDataTable(type, category, dateStart, dateEnd) {
-        let response = await axios.get('http://100.120.0.9:5000/hours_per_work_type_table', {
+        let response = await axios.get(API_URL + 'hours_per_work_type_table', {
             params: {
                 start_date: dateStart,
                 end_date: dateEnd,
@@ -17,7 +19,7 @@ export default class WorkTypeUtils {
     }
 
     static async getWorkTypeDataChart(type, category, dateStart, dateEnd) {
-        let response = await axios.get('http://100.120.0.9:5000/hours_per_work_type_chart', {
+        let response = await axios.get(API_URL + 'hours_per_work_type_chart', {
             params: {
                 start_date: dateStart,
                 end_date: dateEnd,

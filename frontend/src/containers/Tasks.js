@@ -98,27 +98,29 @@ export default class Tasks extends Component {
     }
 
     updateData() {
-        // WorkTypeUtils.getWorkTypeDataTable(
-        //     this.state.formData.dateGroupFormat,
-        //     this.state.formData.workType,
-        //     this.state.formData.dateStart,
-        //     this.state.formData.dateEnd)
-        //     .then((data) => this.setState({
-        //             ...this.state,
-        //             tableData: data
-        //         })
-        //     );
-        ProjectAssigneeUtil.getProjectAssigneeDataChart(
+        ProjectAssigneeUtil.getProjectAssigneeDataTable(
             this.state.formData.workType,
             this.state.formData.dateStart,
             this.state.formData.dateEnd)
             .then((data) => {
+                    this.setState({
+                        ...this.state,
+                        tableData: data
+                    });
+                    console.log(data);
+                }
+            );
+        ProjectAssigneeUtil.getProjectAssigneeDataChart(
+            this.state.formData.workType,
+            this.state.formData.dateStart,
+            this.state.formData.dateEnd)
+            .then((data) =>
                 this.setState({
                     ...this.state,
                     labels: data.labels,
                     datasets: data.datasets
-                });
-            });
+                })
+            );
     }
 
     componentDidMount() {
@@ -128,18 +130,22 @@ export default class Tasks extends Component {
     render() {
         const columns = !!this.state.tableData.length ? [
             {
-                Header: 'Направление',
-                accessor: 'category',
-            }, {
                 Header: 'Проект',
                 accessor: 'project',
+            }, {
+                Header: 'Исполнитель',
+                accessor: 'assignee',
                 Aggregated: (row) => <span>{row.value}</span>
+            }, {
+                Header: 'Тип оценки',
+                accessor: 'type',
+                Aggregated: (row) => <span></span>
             }, ...Object.keys(this.state.tableData[0].hours).map((week) => ({
                 Header: week,
                 id: week,
-                accessor: (row) => row.hours[week],
-                Cell: props => props.value ? Math.round(props.value / 3600) + "h " + props.value % 60 + "m" : '0h 0m',
-                aggregate: vals => _.sum(vals)
+                accessor: (row) => {console.log(row); return row.hours[week]},
+                Cell: props => props.value ? Math.round(props.value / 3600) + "h " + props.value % 60 + "m" : ' ',
+                aggregate: vals => vals[0]
             }))] : [];
         return (
             <div className="animated fadeIn">
@@ -219,7 +225,7 @@ export default class Tasks extends Component {
                     <CardBody>
                         {!!this.state.tableData.length && <ReactTable
                             data={this.state.tableData}
-                            pivotBy={['category']}
+                            pivotBy={['project', 'assignee']}
                             columns={columns}
                             className="-highlight -striped"
                             showPagination={false}
