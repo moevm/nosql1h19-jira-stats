@@ -8,18 +8,14 @@ export default {
                 {
                     name: 'Задачи',
                     url: '/tasks',
-                    //icon: 'fa fa-tasks',
                 },
                 {
-                    name: 'Проекты',
-                    //url: '/base',
-                   // icon: 'fa fa-project-diagram',
-                    attributes: { disabled: true },
+                    name: 'Заказчики',
+                    url: '/components',
                 },
                 {
                     name: 'Направления',
                     url: '/work-type',
-                   // icon: 'fa fa-project-diagram',
                 },
             ],
         },

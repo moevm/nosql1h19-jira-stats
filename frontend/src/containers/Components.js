@@ -4,7 +4,7 @@ import {Card, CardBody, CardHeader, FormGroup, Label, Input, Button} from 'react
 import {CustomTooltips} from '@coreui/coreui-plugin-chartjs-custom-tooltips';
 import ReactTable from "react-table";
 import _ from 'lodash'
-import WorkTypeUtils from '../utils/WorkTypeUtils'
+import ProjectHoursUtil from '../utils/ProjectHoursUtil'
 import 'react-table/react-table.css'
 import moment from "moment"
 
@@ -32,15 +32,11 @@ const options = {
 
                 return label;
             },
-            titleWeek: (tooltipItems) => {
+            title: (tooltipItems) => {
                 return tooltipItems[0].xLabel + ' (' +
                     moment().day("Monday").year(tooltipItems[0].xLabel.split(' ')[1]).week(parseInt(tooltipItems[0].xLabel.split(' ')[0], 10) - 1).add(1, 'days').format("DD.MM.YYYY")
                     + ' - ' + moment().day("Monday").year(tooltipItems[0].xLabel.split(' ')[1]).week(parseInt(tooltipItems[0].xLabel.split(' ')[0], 10) - 1).add(7, 'days').format("DD.MM.YYYY") + ')';
             },
-            titleMonth: (tooltipItems) => {
-                return (tooltipItems[0].xLabel) + ' (' +
-                    moment().day("Monday").year(tooltipItems[0].xLabel.split(' ')[1]).month(parseInt(tooltipItems[0].xLabel.split(' ')[0], 10) - 1).format("MMMM") + ')';
-            }
         }
     },
     maintainAspectRatio: false,
@@ -98,7 +94,7 @@ export default class WorkTypes extends Component {
             datasets: [],
             tableData: [],
             formData: {
-                dateStart: moment().subtract(3, "month").format('YYYY-MM-DD'),
+                dateStart: moment().subtract(1, "month").format('YYYY-MM-DD'),
                 dateEnd: moment().format('YYYY-MM-DD'),
                 dateGroupFormat: 'month',
                 workType: 'all',
@@ -119,9 +115,7 @@ export default class WorkTypes extends Component {
     }
 
     updateData() {
-        WorkTypeUtils.getWorkTypeDataTable(
-            this.state.formData.dateGroupFormat,
-            this.state.formData.workType,
+        ProjectHoursUtil.getProjectHoursDataTable(
             this.state.formData.dateStart,
             this.state.formData.dateEnd)
             .then((data) => this.setState({
@@ -129,16 +123,15 @@ export default class WorkTypes extends Component {
                     tableData: data
                 })
             );
-        WorkTypeUtils.getWorkTypeDataChart(
-            this.state.formData.dateGroupFormat,
-            this.state.formData.workType,
+        ProjectHoursUtil.getProjectHoursDataChart(
             this.state.formData.dateStart,
             this.state.formData.dateEnd)
-            .then((data) => this.setState({
-                ...this.state,
-                labels: data.labels,
-                datasets: data.datasets
-            }));
+            .then((data) =>
+                this.setState({
+                    ...this.state,
+                    labels: data.labels,
+                    datasets: data.datasets
+                }));
     }
 
     componentDidMount() {
@@ -146,21 +139,21 @@ export default class WorkTypes extends Component {
     }
 
     render() {
-        const columns = !!this.state.tableData.length ? [
-            {
-                Header: 'Направление',
-                accessor: 'category',
-            }, {
-                Header: 'Проект',
-                accessor: 'project',
-                Aggregated: (row) => <span>{row.value}</span>
-            }, ...Object.keys(this.state.tableData[0].hours).map((week) => ({
-                Header: week,
-                id: week,
-                accessor: (row) => row.hours[week],
-                Cell: props => props.value ? Math.round(props.value / 3600) + "h " + props.value % 60 + "m" : '0h 0m',
-                aggregate: vals => _.sum(vals)
-            }))] : [];
+        let columns = [];
+        if (!!this.state.tableData.length) {
+            let cols = {...this.state.tableData[0]};
+            delete cols['name'];
+            columns = [
+                {
+                    Header: 'Тип оценки',
+                    accessor: 'name',
+                }, ...Object.keys(cols).map((week, i) => ({
+                    Header: week,
+                    id: week,
+                    accessor: (row) => row[week],
+                }))];
+        }
+        console.log(this.state);
         return (
             <div className="animated fadeIn">
                 <div className="row">
@@ -216,17 +209,7 @@ export default class WorkTypes extends Component {
                                     <Bar data={{
                                         labels: this.state.labels,
                                         datasets: this.state.datasets.map((dataset, i) => ({...dataset, ...colors[i]}))
-                                    }} options={{
-                                        ...bar_options, tooltips: {
-                                            ...bar_options.tooltips,
-                                            callbacks: {
-                                                ...bar_options.tooltips.callbacks,
-                                                title: this.state.formData.dateGroupFormat === "week" ?
-                                                    bar_options.tooltips.callbacks.titleWeek :
-                                                    bar_options.tooltips.callbacks.titleMonth,
-                                            }
-                                        }
-                                    }}/>
+                                    }} options={bar_options}/>
                                 </div>
                             </CardBody>
                         </Card>
@@ -239,7 +222,6 @@ export default class WorkTypes extends Component {
                     <CardBody>
                         {!!this.state.tableData.length && <ReactTable
                             data={this.state.tableData}
-                            pivotBy={['category']}
                             columns={columns}
                             className="-highlight -striped"
                             showPagination={false}
@@ -248,6 +230,7 @@ export default class WorkTypes extends Component {
                     </CardBody>
                 </Card>
             </div>
-        );
+        )
+            ;
     }
 }
