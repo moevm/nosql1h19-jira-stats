@@ -1,5 +1,7 @@
 import os
 
+from raven import Client
+
 BASEDIR = os.path.abspath(os.path.dirname(__file__))
 APP_NAME = "app"
 
@@ -29,6 +31,8 @@ class Config:
     JIRA_EPIC_ID = 'WORK'
     JIRA_EPIC_PROJECT = "WORK'и"
     JSON_AS_ASCII = False
+    SENTRY_CLIENT = Client(
+        'https://575ef3411b3446508046d99b029acd7d:3d43c62c9c044bc1b638dd21805ef329@sentry.robotbull.com/11')
 
 
 class DevConfig(Config):
