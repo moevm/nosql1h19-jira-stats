@@ -597,7 +597,7 @@ class Issue:
                         "project": "$component",
                         "week": {
                             "$dateToString": {
-                                "date": "$created",
+                                "date": "$resolutiondate",
                                 "format": "%V %Y"
                             }
                         }
