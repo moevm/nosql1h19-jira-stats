@@ -1,34 +1,24 @@
 import React, {Component} from 'react';
 import {Button, Card, CardBody, CardHeader, FormGroup, Input, Label, Alert} from "reactstrap";
 import ConfigUtil from '../utils/ConfigUtil'
-import ImportExportUtil from '../utils/ImportExportUtil'
-import axios from 'axios';
-import {API_URL} from "../config";
 
 export default class Config extends Component {
 
     constructor(props) {
         super(props);
         this.handleInputChange = this.handleInputChange.bind(this);
-        this.handleFileChange = this.handleFileChange.bind(this);
         this.checkData = this.checkData.bind(this);
-        this.sendImportFile = this.sendImportFile.bind(this);
         this.state = {
             alerts: {
                 loading: false,
                 error: false,
-                success: false,
-                file_loading: false,
-                file_error: false,
-                file_success: false
+                success: false
             },
             formData: {
                 jiraUrl: undefined,
                 jiraLogin: undefined,
                 jiraPassword: undefined,
-            },
-            file: undefined,
-            fileName: undefined,
+            }
         }
     }
 
@@ -39,23 +29,6 @@ export default class Config extends Component {
                 ...this.state.formData,
                 [target.name]: target.value
             }
-        });
-    }
-
-    handleFileChange(event) {
-        const target = event.target;
-        console.log(event.target.files[0]);
-        this.setState({
-            ...this.state, file: event.target.files[0], fileName: event.target.value
-        });
-    }
-
-    sendImportFile() {
-        this.setState({...this.state, alerts: {...this.state.alerts, file_loading: true, file_error: false, file_success: false}});
-        ImportExportUtil.importDatabase(this.state.file).then(() => {
-            this.setState({...this.state, alerts: {...this.state.alerts, file_loading: false, file_error: false, file_success: true}});
-        }).catch(() => {
-            this.setState({...this.state, alerts: {...this.state.alerts, file_loading: true, file_error: true, file_success: false}});
         });
     }
 
@@ -83,18 +56,16 @@ export default class Config extends Component {
                     <div className="col-md-4">
                         <Card>
                             <CardHeader>
-                                Параметры JIRA
+                                Параметры
                             </CardHeader>
                             <CardBody>
                                 <Alert color="secondary" isOpen={this.state.alerts.loading}>
                                     Проверка...
                                 </Alert>
-                                <Alert color="danger" isOpen={this.state.alerts.error}
-                                       toggle={this.onDismiss.bind(this, 'error')}>
+                                <Alert color="danger" isOpen={this.state.alerts.error} toggle={this.onDismiss.bind(this, 'error')}>
                                     Ошибка
                                 </Alert>
-                                <Alert color="success" isOpen={this.state.alerts.success}
-                                       toggle={this.onDismiss.bind(this, 'success')}>
+                                <Alert color="success" isOpen={this.state.alerts.success} toggle={this.onDismiss.bind(this, 'success')}>
                                     Данные успешно сохранены!
                                 </Alert>
                                 <FormGroup>
@@ -117,37 +88,6 @@ export default class Config extends Component {
                                 <div className="form-actions">
                                     <Button color="primary" style={{width: '100%'}}
                                             onClick={this.checkData}>Обновить</Button>
-                                </div>
-                            </CardBody>
-                        </Card>
-                    </div>
-                    <div className="col-md-4">
-                        <Card>
-                            <CardHeader>
-                                Импорт/экспорт базы данных
-                            </CardHeader>
-                            <CardBody>
-                                <Alert color="secondary" isOpen={this.state.alerts.file_loading}>
-                                    Проверка...
-                                </Alert>
-                                <Alert color="danger" isOpen={this.state.alerts.file_error} toggle={this.onDismiss.bind(this, 'file_error')}>
-                                    Ошибка
-                                </Alert>
-                                <Alert color="success" isOpen={this.state.alerts.file_success} toggle={this.onDismiss.bind(this, 'file_success')}>
-                                    Данные успешно сохранены!
-                                </Alert>
-                                <FormGroup>
-                                    <Input name="importFile" type="file" accept='.json' value={this.state.fileName}
-                                           onChange={this.handleFileChange}/>
-                                </FormGroup>
-                                <div className="form-actions">
-                                    <Button color="dark" style={{width: '100%'}}
-                                            onClick={this.sendImportFile}>Импортировать</Button>
-                                </div>
-                                <hr/>
-                                <div className="form-actions">
-                                    <Button color="success" style={{width: '100%'}}
-                                            onClick={ImportExportUtil.exportDatabase}>Экспортировать</Button>
                                 </div>
                             </CardBody>
                         </Card>
