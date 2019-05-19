@@ -4,7 +4,7 @@ import {Card, CardBody, CardHeader, FormGroup, Label, Input, Button} from 'react
 import {CustomTooltips} from '@coreui/coreui-plugin-chartjs-custom-tooltips';
 import ReactTable from "react-table";
 import _ from 'lodash'
-import WorkTypeUtils from '../utils/WorkTypeUtils'
+import ProjectHoursUtil from '../utils/ProjectHoursUtil'
 import 'react-table/react-table.css'
 import moment from "moment"
 
@@ -32,15 +32,11 @@ const options = {
 
                 return label;
             },
-            titleWeek: (tooltipItems) => {
+            title: (tooltipItems) => {
                 return tooltipItems[0].xLabel + ' (' +
                     moment().day("Monday").year(tooltipItems[0].xLabel.split(' ')[1]).week(parseInt(tooltipItems[0].xLabel.split(' ')[0], 10) - 1).add(1, 'days').format("DD.MM.YYYY")
                     + ' - ' + moment().day("Monday").year(tooltipItems[0].xLabel.split(' ')[1]).week(parseInt(tooltipItems[0].xLabel.split(' ')[0], 10) - 1).add(7, 'days').format("DD.MM.YYYY") + ')';
             },
-            titleMonth: (tooltipItems) => {
-                return (tooltipItems[0].xLabel) + ' (' +
-                    moment().day("Monday").year(tooltipItems[0].xLabel.split(' ')[1]).month(parseInt(tooltipItems[0].xLabel.split(' ')[0], 10) - 1).format("MMMM") + ')';
-            }
         }
     },
     maintainAspectRatio: false,
@@ -64,20 +60,20 @@ const bar_options = {
 
 const colors = [
     {
-        backgroundColor: 'rgba(255, 99, 132, 0.8)',
-        borderColor: 'rgba(255,99,132,1)',
+        backgroundColor: 'rgba(155, 89, 182,1.0)',
+        borderColor: 'rgba(155, 89, 182,0.8)',
         borderWidth: 1,
     }, {
-        backgroundColor: 'rgba(54, 162, 235, 0.8)',
-        borderColor: 'rgba(54, 162, 235, 1)',
+        backgroundColor: 'rgba(32,168,216,1.0)',
+        borderColor: 'rgba(32,168,216,0.8)',
         borderWidth: 1,
     }, {
-        backgroundColor: 'rgba(255, 206, 86, 0.8)',
-        borderColor: 'rgba(255, 206, 86, 1)',
+        backgroundColor: 'rgba(230, 126, 34,1.0)',
+        borderColor: 'rgba(230, 126, 34,0.8)',
         borderWidth: 1,
     }, {
-        backgroundColor: 'rgba(75, 192, 192, 0.8)',
-        borderColor: 'rgba(75, 192, 192, 1)',
+        backgroundColor: 'rgba(46, 204, 113,1.0)',
+        borderColor: 'rgba(46, 204, 113,0.8)',
         borderWidth: 1,
     }, {
         backgroundColor: 'rgba(153, 102, 255, 0.8)',
@@ -98,10 +94,9 @@ export default class WorkTypes extends Component {
             datasets: [],
             tableData: [],
             formData: {
-                dateStart: moment().subtract(3, "month").format('YYYY-MM-DD'),
+                dateStart: moment().subtract(2, "month").format('YYYY-MM-DD'),
                 dateEnd: moment().format('YYYY-MM-DD'),
-                dateGroupFormat: 'month',
-                workType: 'all',
+                component: 'all',
             }
         };
         this.handleInputChange = this.handleInputChange.bind(this);
@@ -119,9 +114,7 @@ export default class WorkTypes extends Component {
     }
 
     updateData() {
-        WorkTypeUtils.getWorkTypeDataTable(
-            this.state.formData.dateGroupFormat,
-            this.state.formData.workType,
+        ProjectHoursUtil.getProjectHoursDataTable(
             this.state.formData.dateStart,
             this.state.formData.dateEnd)
             .then((data) => this.setState({
@@ -129,16 +122,15 @@ export default class WorkTypes extends Component {
                     tableData: data
                 })
             );
-        WorkTypeUtils.getWorkTypeDataChart(
-            this.state.formData.dateGroupFormat,
-            this.state.formData.workType,
+        ProjectHoursUtil.getProjectHoursDataChart(
             this.state.formData.dateStart,
             this.state.formData.dateEnd)
-            .then((data) => this.setState({
-                ...this.state,
-                labels: data.labels,
-                datasets: data.datasets
-            }));
+            .then((data) =>
+                this.setState({
+                    ...this.state,
+                    labels: data.labels,
+                    datasets: data.datasets
+                }));
     }
 
     componentDidMount() {
@@ -146,21 +138,21 @@ export default class WorkTypes extends Component {
     }
 
     render() {
-        const columns = !!this.state.tableData.length ? [
-            {
-                Header: 'Направление',
-                accessor: 'category',
-            }, {
-                Header: 'Проект',
-                accessor: 'project',
-                Aggregated: (row) => <span>{row.value}</span>
-            }, ...Object.keys(this.state.tableData[0].hours).map((week) => ({
-                Header: week,
-                id: week,
-                accessor: (row) => row.hours[week],
-                Cell: props => props.value ? Math.round(props.value / 3600) + "h " + props.value % 60 + "m" : '',
-                aggregate: vals => _.sum(vals)
-            }))] : [];
+        let columns = [];
+        if (!!this.state.tableData.length) {
+            let cols = {...this.state.tableData[0]};
+            delete cols['name'];
+            columns = [
+                {
+                    Header: 'Тип оценки',
+                    accessor: 'name',
+                }, ...Object.keys(cols).map((week, i) => ({
+                    Header: week,
+                    id: week,
+                    accessor: (row) => row[week],
+                }))];
+        }
+        console.log(this.state);
         return (
             <div className="animated fadeIn">
                 <div className="row">
@@ -181,22 +173,16 @@ export default class WorkTypes extends Component {
                                            onChange={this.handleInputChange}/>
                                 </FormGroup>
                                 <FormGroup>
-                                    <Label htmlFor="dateGroupFormat">Формат</Label>
-                                    <Input type="select" name="dateGroupFormat"
-                                           value={this.state.formData.dateGroupFormat}
-                                           onChange={this.handleInputChange}>
-                                        <option value="month">Месяц</option>
-                                        <option value="week">Неделя</option>
-                                    </Input>
-                                </FormGroup>
-                                <FormGroup>
-                                    <Label htmlFor="workType">Направление</Label>
-                                    <Input type="select" name="workType" value={this.state.formData.workType}
+                                    <Label htmlFor="component">Заказчик</Label>
+                                    <Input type="select" name="component"
+                                           value={this.state.formData.component}
                                            onChange={this.handleInputChange}>
                                         <option value="all">Все</option>
-                                        <option value="Разработка">Разработка</option>
-                                        <option value="Дизайн">Дизайн</option>
-                                        <option value="Администрирование">Администрирование</option>
+                                        <option value="ESS">ESS</option>
+                                        <option value="FinTech">FinTech</option>
+                                        <option value="PlanSharing">PlanSharing</option>
+                                        <option value="RobotBull">RobotBull</option>
+                                        <option value="Rusintermo">Rusintermo</option>
                                     </Input>
                                 </FormGroup>
                                 <div className="form-actions">
@@ -212,21 +198,11 @@ export default class WorkTypes extends Component {
                                 График распределения трудозатрат по направлениям
                             </CardHeader>
                             <CardBody>
-                                <div className="chart-wrapper" style={{height: 355}}>
+                                <div className="chart-wrapper" style={{height: 275}}>
                                     <Bar data={{
                                         labels: this.state.labels,
                                         datasets: this.state.datasets.map((dataset, i) => ({...dataset, ...colors[i]}))
-                                    }} options={{
-                                        ...bar_options, tooltips: {
-                                            ...bar_options.tooltips,
-                                            callbacks: {
-                                                ...bar_options.tooltips.callbacks,
-                                                title: this.state.formData.dateGroupFormat === "week" ?
-                                                    bar_options.tooltips.callbacks.titleWeek :
-                                                    bar_options.tooltips.callbacks.titleMonth,
-                                            }
-                                        }
-                                    }}/>
+                                    }} options={bar_options}/>
                                 </div>
                             </CardBody>
                         </Card>
@@ -239,7 +215,6 @@ export default class WorkTypes extends Component {
                     <CardBody>
                         {!!this.state.tableData.length && <ReactTable
                             data={this.state.tableData}
-                            pivotBy={['category']}
                             columns={columns}
                             className="-highlight -striped"
                             showPagination={false}
@@ -248,6 +223,7 @@ export default class WorkTypes extends Component {
                     </CardBody>
                 </Card>
             </div>
-        );
+        )
+            ;
     }
 }
