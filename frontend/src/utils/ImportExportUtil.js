@@ -13,6 +13,10 @@ export default class ImportExportUtil {
         return await axios.post(API_URL + 'import_documents_from_json', formData, config)
     }
 
+    static async importJira() {
+        return await axios.get('http://jira-stats.int.robotbull.com/api/import/')
+    }
+
     static async exportDatabase() {
         window.open(API_URL + 'export_documents_to_json', '_blank');
     }
