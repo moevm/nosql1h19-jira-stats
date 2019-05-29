@@ -637,14 +637,7 @@ class Issue:
         if component:
             query[0]["$match"].update({"component": component})
 
-        query.append([{
-            "$match": {
-                "resolutiondate": {
-                    "$gte": start_datetime,
-                    "$lt": end_datetime
-                },
-            }
-        },
+        query.append([
             {
                 "$group": {
                     "_id": {
