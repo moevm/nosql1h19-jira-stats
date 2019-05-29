@@ -6,11 +6,12 @@ import {fastpivot} from '../misc/fastpivot.min'
 import {API_URL} from "../config";
 
 export default class ProjectHoursUtil {
-    static async getProjectHoursDataTable(dateStart, dateEnd) {
+    static async getProjectHoursDataTable(dateStart, dateEnd, component) {
         let response = await axios.get(API_URL + 'hours_per_project_table', {
             params: {
                 start_date: dateStart,
-                end_date: dateEnd
+                end_date: dateEnd,
+                component: component !== 'all' ? component : undefined
             }
         });
         let data = response.data;
@@ -50,11 +51,12 @@ export default class ProjectHoursUtil {
         return result;
     }
 
-    static async getProjectHoursDataChart(dateStart, dateEnd) {
+    static async getProjectHoursDataChart(dateStart, dateEnd, component) {
         let response = await axios.get(API_URL + 'hours_per_project_chart', {
             params: {
                 start_date: dateStart,
                 end_date: dateEnd,
+                component: component !== 'all' ? component : undefined
             }
         });
         let data = response.data;
@@ -74,19 +76,19 @@ export default class ProjectHoursUtil {
     }
 
     static absolutePercent(num) {
-        if(!num) return '-';
+        if (!num) return '-';
         return Math.round(num * 100, 0) + '%';
     }
 
     static relativePercent(num) {
-        if(!num) return '-';
-        let percent =  Math.round(num * 100, 0) - 100;
+        if (!num) return '-';
+        let percent = Math.round(num * 100, 0) - 100;
         let sign = percent > 0 ? '+' : '';
         return sign + percent + '%';
     }
 
     static formatHours(time) {
-        if(!time) return '-';
+        if (!time) return '-';
         return Math.round(time / 3600) + "h " + time % 60 + "m";
     }
 }

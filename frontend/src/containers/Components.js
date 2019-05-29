@@ -116,7 +116,8 @@ export default class WorkTypes extends Component {
     updateData() {
         ProjectHoursUtil.getProjectHoursDataTable(
             this.state.formData.dateStart,
-            this.state.formData.dateEnd)
+            this.state.formData.dateEnd,
+            this.state.formData.component)
             .then((data) => this.setState({
                     ...this.state,
                     tableData: data
@@ -124,7 +125,8 @@ export default class WorkTypes extends Component {
             );
         ProjectHoursUtil.getProjectHoursDataChart(
             this.state.formData.dateStart,
-            this.state.formData.dateEnd)
+            this.state.formData.dateEnd,
+            this.state.formData.component)
             .then((data) =>
                 this.setState({
                     ...this.state,
