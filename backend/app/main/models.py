@@ -508,7 +508,7 @@ class Issue:
         if component:
             query[0]["$match"].update({"component": component})
 
-        query.append([
+        query.append(
             {
                 "$group": {
                     "_id": {
@@ -527,7 +527,8 @@ class Issue:
                     },
 
                 }
-            },
+            })
+        query.append(
             {
                 "$facet": {
                     "statTotalSpent": [
@@ -556,35 +557,35 @@ class Issue:
                     ],
 
                 }
-            },
-            {
-                "$project": {
-                    "statTotalSpent": {
-                        "$arrayElemAt": ["$statTotalSpent", 0]
-                    },
-                    "hoursPerWeek": "$hoursPerWeek"
-                }
-            },
-            {
-                "$project": {
-                    "statTotalSpent": "$statTotalSpent",
-                    "hoursPerWeek": {
-                        "$map": {
-                            "input": "$hoursPerWeek",
-                            "as": "temp",
-                            "in": {
-                                "$mergeObjects": [
-                                    "$$temp",
-                                    {
-                                        "spentEstimateRatio": {
-                                            "$divide": ["$$temp.totalSpent", "$$temp.totalEstimate"]
-                                        },
-                                        "deviationFromAvg": {
-                                            "$divide": ["$$temp.totalSpent", "$statTotalSpent.avgTotalSpent"]
-                                        },
-                                        "deviationFromMax": {
-                                            "$divide": ["$$temp.totalSpent", "$statTotalSpent.maxTotalSpent"]
-                                        },
+            })
+        query.append({
+            "$project": {
+                "statTotalSpent": {
+                    "$arrayElemAt": ["$statTotalSpent", 0]
+                },
+                "hoursPerWeek": "$hoursPerWeek"
+            }
+        })
+        query.append({
+            "$project": {
+                "statTotalSpent": "$statTotalSpent",
+                "hoursPerWeek": {
+                    "$map": {
+                        "input": "$hoursPerWeek",
+                        "as": "temp",
+                        "in": {
+                            "$mergeObjects": [
+                                "$$temp",
+                                 {
+                                    "spentEstimateRatio": {
+                                        "$divide": ["$$temp.totalSpent", "$$temp.totalEstimate"]
+                                    },
+                                    "deviationFromAvg": {
+                                        "$divide": ["$$temp.totalSpent", "$statTotalSpent.avgTotalSpent"]
+                                    },
+                                    "deviationFromMax": {
+                                        "$divide": ["$$temp.totalSpent", "$statTotalSpent.maxTotalSpent"]
+                                    },
 
                                     }
                                 ]
@@ -592,20 +593,20 @@ class Issue:
                         }
                     }
                 }
-            },
-            {
-                "$project": {
-                    "hoursPerWeek": "$hoursPerWeek"
-                }
-            },
-            {
-                "$unwind": "$hoursPerWeek"
-            },
-            {
-                "$replaceRoot": {
-                    "newRoot": "$hoursPerWeek"
-                }
-            }])
+            })
+        query.append({
+            "$project": {
+               "hoursPerWeek": "$hoursPerWeek"
+            }
+        })
+        query.append({
+            "$unwind": "$hoursPerWeek"
+        })
+        query.append({
+            "$replaceRoot": {
+                "newRoot": "$hoursPerWeek"
+            }
+        })
 
         return list(db.issue.aggregate(query))
 
@@ -637,7 +638,7 @@ class Issue:
         if component:
             query[0]["$match"].update({"component": component})
 
-        query.append([
+        query.append(
             {
                 "$group": {
                     "_id": {
@@ -656,7 +657,8 @@ class Issue:
                         "$sum": "$timeoriginalestimate"
                     }
                 }
-            },
+            })
+        query.append(
             {
                 "$group": {
                     "_id": {
@@ -669,14 +671,17 @@ class Issue:
                         }
                     },
                 }
-            },
+            })
+        query.append(
             {
                 "$addFields": {
                     "hours": {
                         "$arrayToObject": "$hours"
                     },
                 }
-            },
+            })
+
+        query.append(
             {
                 "$project": {
                     "project": "$_id.project",
@@ -684,7 +689,7 @@ class Issue:
                     "hours": "$hours",
                     "_id": 0
                 }
-            }])
+            })
 
         return list(db.issue.aggregate(query))
 
