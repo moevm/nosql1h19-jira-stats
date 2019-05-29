@@ -100,8 +100,12 @@ def hours_per_project_table():
     try:
         start_date = datetime.strptime(request.args.get('start_date'), '%Y-%m-%d')
         end_date = datetime.strptime(request.args.get('end_date'), '%Y-%m-%d')
+        try:
+            component = request.args.get('component')
+        except:
+            component = None
 
-        response = jsonify(Issue.hours_per_project_table(start_datetime=start_date, end_datetime=end_date))
+        response = jsonify(Issue.hours_per_project_table(component=component, start_datetime=start_date, end_datetime=end_date))
     except Exception as e:
         Config.SENTRY_CLIENT.captureException()
         response = jsonify({'success': False, 'exception': e.__str__()}), 500
@@ -113,8 +117,12 @@ def hours_per_project_chart():
     try:
         start_date = datetime.strptime(request.args.get('start_date'), '%Y-%m-%d')
         end_date = datetime.strptime(request.args.get('end_date'), '%Y-%m-%d')
+        try:
+            component = request.args.get('component')
+        except:
+            component = None
 
-        response = jsonify(Issue.hours_per_project_chart(start_datetime=start_date, end_datetime=end_date))
+        response = jsonify(Issue.hours_per_project_chart(component=component, start_datetime=start_date, end_datetime=end_date))
     except Exception as e:
         Config.SENTRY_CLIENT.captureException()
         response = jsonify({'success': False, 'exception': e.__str__()}), 500

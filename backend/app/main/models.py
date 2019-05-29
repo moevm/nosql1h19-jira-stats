@@ -483,25 +483,32 @@ class Issue:
 
     @staticmethod
     def hours_per_project_table(start_datetime=datetime.now().isoformat(),
-                                end_datetime=(datetime.now() + timedelta(days=30)).isoformat()):
+                                end_datetime=(datetime.now() + timedelta(days=30)).isoformat(), component=None):
         """
         Трудозатраты по проектам для таблицы
 
         Args:
             start_datetime (str): Дата начала в формате гггг-мм-дд
             end_datetime (str): Дата окончания в формате гггг-мм-дд
+            component (str): Заказчие
 
         Returns:
             list
         """
-        query = [{
+        query = list()
+        query.append({
             "$match": {
                 "resolutiondate": {
                     "$gte": start_datetime,
                     "$lt": end_datetime
                 },
             }
-        },
+        })
+
+        if component:
+            query[0]["$match"].update({"component": component})
+
+        query.append([
             {
                 "$group": {
                     "_id": {
@@ -598,31 +605,39 @@ class Issue:
                 "$replaceRoot": {
                     "newRoot": "$hoursPerWeek"
                 }
-            }]
+            }])
 
         return list(db.issue.aggregate(query))
 
     @staticmethod
     def hours_per_project_chart(start_datetime=datetime.now().isoformat(),
-                                end_datetime=(datetime.now() + timedelta(days=30)).isoformat()):
+                                end_datetime=(datetime.now() + timedelta(days=30)).isoformat(), component=None):
         """
         Трудозатраты по проектам для графика
 
         Args:
             start_datetime (str): Дата начала в формате гггг-мм-дд
             end_datetime (str): Дата окончания в формате гггг-мм-дд
+            component (str): Заказчик
 
         Returns:
             list
         """
-        query = [{
+        query = list()
+
+        query.append({
             "$match": {
                 "resolutiondate": {
                     "$gte": start_datetime,
                     "$lt": end_datetime
                 },
             }
-        },
+        })
+
+        if component:
+            query[0]["$match"].update({"component": component})
+
+        query.append([
             {
                 "$group": {
                     "_id": {
@@ -669,7 +684,8 @@ class Issue:
                     "hours": "$hours",
                     "_id": 0
                 }
-            }]
+            }])
+
         return list(db.issue.aggregate(query))
 
 
