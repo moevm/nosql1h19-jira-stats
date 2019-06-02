@@ -483,25 +483,32 @@ class Issue:
 
     @staticmethod
     def hours_per_project_table(start_datetime=datetime.now().isoformat(),
-                                end_datetime=(datetime.now() + timedelta(days=30)).isoformat()):
+                                end_datetime=(datetime.now() + timedelta(days=30)).isoformat(), component=None):
         """
         Трудозатраты по проектам для таблицы
 
         Args:
             start_datetime (str): Дата начала в формате гггг-мм-дд
             end_datetime (str): Дата окончания в формате гггг-мм-дд
+            component (str): Заказчие
 
         Returns:
             list
         """
-        query = [{
+        query = list()
+        query.append({
             "$match": {
                 "resolutiondate": {
                     "$gte": start_datetime,
                     "$lt": end_datetime
                 },
             }
-        },
+        })
+
+        if component:
+            query[0]["$match"].update({"component": component})
+
+        query.append(
             {
                 "$group": {
                     "_id": {
@@ -520,7 +527,8 @@ class Issue:
                     },
 
                 }
-            },
+            })
+        query.append(
             {
                 "$facet": {
                     "statTotalSpent": [
@@ -549,35 +557,35 @@ class Issue:
                     ],
 
                 }
-            },
-            {
-                "$project": {
-                    "statTotalSpent": {
-                        "$arrayElemAt": ["$statTotalSpent", 0]
-                    },
-                    "hoursPerWeek": "$hoursPerWeek"
-                }
-            },
-            {
-                "$project": {
-                    "statTotalSpent": "$statTotalSpent",
-                    "hoursPerWeek": {
-                        "$map": {
-                            "input": "$hoursPerWeek",
-                            "as": "temp",
-                            "in": {
-                                "$mergeObjects": [
-                                    "$$temp",
-                                    {
-                                        "spentEstimateRatio": {
-                                            "$divide": ["$$temp.totalSpent", "$$temp.totalEstimate"]
-                                        },
-                                        "deviationFromAvg": {
-                                            "$divide": ["$$temp.totalSpent", "$statTotalSpent.avgTotalSpent"]
-                                        },
-                                        "deviationFromMax": {
-                                            "$divide": ["$$temp.totalSpent", "$statTotalSpent.maxTotalSpent"]
-                                        },
+            })
+        query.append({
+            "$project": {
+                "statTotalSpent": {
+                    "$arrayElemAt": ["$statTotalSpent", 0]
+                },
+                "hoursPerWeek": "$hoursPerWeek"
+            }
+        })
+        query.append({
+            "$project": {
+                "statTotalSpent": "$statTotalSpent",
+                "hoursPerWeek": {
+                    "$map": {
+                        "input": "$hoursPerWeek",
+                        "as": "temp",
+                        "in": {
+                            "$mergeObjects": [
+                                "$$temp",
+                                 {
+                                    "spentEstimateRatio": {
+                                        "$divide": ["$$temp.totalSpent", "$$temp.totalEstimate"]
+                                    },
+                                    "deviationFromAvg": {
+                                        "$divide": ["$$temp.totalSpent", "$statTotalSpent.avgTotalSpent"]
+                                    },
+                                    "deviationFromMax": {
+                                        "$divide": ["$$temp.totalSpent", "$statTotalSpent.maxTotalSpent"]
+                                    },
 
                                     }
                                 ]
@@ -585,44 +593,52 @@ class Issue:
                         }
                     }
                 }
-            },
-            {
-                "$project": {
-                    "hoursPerWeek": "$hoursPerWeek"
-                }
-            },
-            {
-                "$unwind": "$hoursPerWeek"
-            },
-            {
-                "$replaceRoot": {
-                    "newRoot": "$hoursPerWeek"
-                }
-            }]
+            })
+        query.append({
+            "$project": {
+               "hoursPerWeek": "$hoursPerWeek"
+            }
+        })
+        query.append({
+            "$unwind": "$hoursPerWeek"
+        })
+        query.append({
+            "$replaceRoot": {
+                "newRoot": "$hoursPerWeek"
+            }
+        })
 
         return list(db.issue.aggregate(query))
 
     @staticmethod
     def hours_per_project_chart(start_datetime=datetime.now().isoformat(),
-                                end_datetime=(datetime.now() + timedelta(days=30)).isoformat()):
+                                end_datetime=(datetime.now() + timedelta(days=30)).isoformat(), component=None):
         """
         Трудозатраты по проектам для графика
 
         Args:
             start_datetime (str): Дата начала в формате гггг-мм-дд
             end_datetime (str): Дата окончания в формате гггг-мм-дд
+            component (str): Заказчик
 
         Returns:
             list
         """
-        query = [{
+        query = list()
+
+        query.append({
             "$match": {
                 "resolutiondate": {
                     "$gte": start_datetime,
                     "$lt": end_datetime
                 },
             }
-        },
+        })
+
+        if component:
+            query[0]["$match"].update({"component": component})
+
+        query.append(
             {
                 "$group": {
                     "_id": {
@@ -641,7 +657,8 @@ class Issue:
                         "$sum": "$timeoriginalestimate"
                     }
                 }
-            },
+            })
+        query.append(
             {
                 "$group": {
                     "_id": {
@@ -654,14 +671,17 @@ class Issue:
                         }
                     },
                 }
-            },
+            })
+        query.append(
             {
                 "$addFields": {
                     "hours": {
                         "$arrayToObject": "$hours"
                     },
                 }
-            },
+            })
+
+        query.append(
             {
                 "$project": {
                     "project": "$_id.project",
@@ -669,7 +689,8 @@ class Issue:
                     "hours": "$hours",
                     "_id": 0
                 }
-            }]
+            })
+
         return list(db.issue.aggregate(query))
 
 

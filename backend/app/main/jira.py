@@ -78,7 +78,7 @@ def import_issues():
 
     # PlanSharing
     component = 'PlanSharing'
-    project = 'ПланШеринг'
+    project = 'PlanSharing'
     jql = 'project = {} ORDER BY key ASC'.format(project)
     project_issues = jira.search_issues(jql, maxResults=False)
 
